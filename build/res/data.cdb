@@ -1,0 +1,109 @@
+{
+	"sheets": [
+		{
+			"name": "cards",
+			"columns": [
+				{
+					"typeStr": "0",
+					"name": "alias"
+				},
+				{
+					"typeStr": "5:building,event,resource,specialist,improvement",
+					"name": "type"
+				},
+				{
+					"typeStr": "3",
+					"name": "labor_cost",
+					"display": null
+				},
+				{
+					"typeStr": "3",
+					"name": "money_cost"
+				},
+				{
+					"typeStr": "1",
+					"name": "dims"
+				},
+				{
+					"typeStr": "1",
+					"name": "title",
+					"display": null
+				},
+				{
+					"typeStr": "1",
+					"name": "description",
+					"display": null
+				}
+			],
+			"lines": [
+				{
+					"alias": "wall",
+					"type": 4,
+					"labor_cost": 3,
+					"money_cost": 0,
+					"dims": "-",
+					"title": "Wall",
+					"description": "Blocks movement through this square; Blocks line of sight; Buildings that provide S in this square provide +1 S"
+				},
+				{
+					"alias": "guard_tower",
+					"type": 0,
+					"labor_cost": 3,
+					"money_cost": 0,
+					"dims": "-",
+					"title": "Guard Tower",
+					"description": "'+3 S; Protect self and all adjacent cards"
+				},
+				{
+					"alias": "village_labor",
+					"type": 2,
+					"labor_cost": 0,
+					"money_cost": 2,
+					"dims": "1x1",
+					"title": "Village Labor",
+					"description": "'+1 L"
+				},
+				{
+					"alias": "farmer",
+					"type": 2,
+					"labor_cost": 0,
+					"money_cost": 1,
+					"dims": "1x1",
+					"title": "Farmer",
+					"description": "'+1 M"
+				},
+				{
+					"alias": "send_out_the_messengers",
+					"type": 1,
+					"labor_cost": 0,
+					"money_cost": 3,
+					"dims": "-",
+					"title": "Send out the Messengers",
+					"description": "'+ 2 Orders"
+				},
+				{
+					"alias": "military_engineers",
+					"type": 1,
+					"labor_cost": 0,
+					"money_cost": 5,
+					"dims": "-",
+					"title": "Military Engineers",
+					"description": "'+2 L; +1 order"
+				},
+				{
+					"alias": "stir_peasants",
+					"type": 1,
+					"labor_cost": 0,
+					"money_cost": 5,
+					"dims": "",
+					"title": "Stir up the Peasants",
+					"description": "If your H is 5 greater than your opponent's H, disable up to 3 opposing Village Labor or Work Crew cards for 1. Diable these cards for 1 additional turn for every 5 above the first"
+				}
+			],
+			"separators": [],
+			"props": {}
+		}
+	],
+	"customTypes": [],
+	"compress": false
+}
