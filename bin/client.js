@@ -988,41 +988,7 @@ Game.prototype = $extend(dn_Process.prototype,{
 				e.update();
 			}
 		}
-		if(!ui_Console.ME.isActive() && !ui_Modal.hasAny()) {
-			var _this = this.ca;
-			var k = 4;
-			var tmp;
-			if(!(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer)) {
-				var tmp1;
-				var tmp2;
-				var tmp3;
-				var k1 = _this.parent.primary.h[k];
-				if(!(k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isPressed(k1))) {
-					var k1 = _this.parent.secondary.h[k];
-					tmp3 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isPressed(k1);
-				} else {
-					tmp3 = true;
-				}
-				if(!tmp3) {
-					var k1 = _this.parent.third.h[k];
-					tmp2 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isPressed(k1);
-				} else {
-					tmp2 = true;
-				}
-				if(!tmp2) {
-					var k1 = _this.parent.fourth.h[k];
-					tmp1 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isPressed(k1);
-				} else {
-					tmp1 = true;
-				}
-				tmp = tmp1 || _this.parent.gc.isPressed(k);
-			} else {
-				tmp = false;
-			}
-			if(tmp) {
-				Main.ME.startGame();
-			}
-		}
+		var tmp = !ui_Console.ME.isActive() && !ui_Modal.hasAny();
 		var _this = this.ca;
 		var k = 1;
 		var tmp;
@@ -49999,6 +49965,7 @@ var ui_InfoBox = function() {
 	this.writing = false;
 	this.s = "";
 	this.queue = [];
+	var _gthis = this;
 	h2d_Flow.call(this);
 	ui_InfoBox.ME = this;
 	Game.ME.scroller.addChildAt(this,Const.DP_UI);
@@ -50011,10 +49978,26 @@ var ui_InfoBox = function() {
 	this.set_layout(h2d_FlowLayout.Vertical);
 	this.set_verticalAlign(h2d_FlowAlign.Top);
 	this.set_verticalSpacing(10);
-	this.input = new h2d_TextInput(Assets.fontLarge);
-	this.input.set_text("Click to chat");
-	this.input.set_textColor(11184810);
-	this.addChild(this.input);
+	this.nameInput = new h2d_TextInput(Assets.fontMedium);
+	this.nameInput.set_text("Name");
+	this.nameInput.set_textColor(11184810);
+	this.addChild(this.nameInput);
+	this.nameInput.onFocus = function(_) {
+		_gthis.nameInput.set_textColor(16777215);
+	};
+	this.nameInput.onFocusLost = function(_) {
+		_gthis.nameInput.set_textColor(11184810);
+	};
+	this.chatInput = new h2d_TextInput(Assets.fontLarge);
+	this.chatInput.set_text("Click to chat");
+	this.chatInput.set_textColor(11184810);
+	this.addChild(this.chatInput);
+	this.chatInput.onFocus = function(_) {
+		_gthis.chatInput.set_textColor(16777215);
+	};
+	this.chatInput.onFocusLost = function(_) {
+		_gthis.chatInput.set_textColor(11184810);
+	};
 	this.texts = new h2d_Flow(this);
 	this.texts.set_layout(h2d_FlowLayout.Vertical);
 	this.texts.set_verticalAlign(h2d_FlowAlign.Top);
@@ -50036,7 +50019,7 @@ ui_InfoBox.prototype = $extend(h2d_Flow.prototype,{
 		this.popQueue();
 	}
 	,sendChat: function() {
-		client_FaeranClient.ME.room.send("ChatRequest",this.input.text);
+		client_FaeranClient.ME.room.send("ChatRequest","" + this.nameInput.text + ":\n " + this.chatInput.text);
 	}
 	,popQueue: function() {
 		if(!this.writing && this.queue.length > 0) {
