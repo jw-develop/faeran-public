@@ -2862,7 +2862,6 @@ card_Card.prototype = $extend(h2d_Object.prototype,{
 			_gthis.scaleY = 2;
 			_gthis.alpha = .8;
 			card_Hand.ME.reflow();
-			client_FaeranClient.ME.room.send("ChatRequest\", \"Hovered over " + _gthis.info.title + "!");
 		};
 		this.interactive.onOut = function(e) {
 			if(!_gthis.selected) {
@@ -5188,17 +5187,36 @@ client_schema_Action.prototype = $extend(io_colyseus_serializer_schema_Schema.pr
 	__class__: client_schema_Action
 });
 var client_schema_FaeranState = function() {
+	this.players = new io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player();
 	this.actions = io_colyseus_serializer_schema_types_ArraySchema._new();
 	io_colyseus_serializer_schema_Schema.call(this);
 	this._indexes.h[0] = "actions";
 	this._types.h[0] = "array";
 	this._childTypes.h[0] = client_schema_Action;
+	this._indexes.h[1] = "players";
+	this._types.h[1] = "map";
+	this._childTypes.h[1] = client_schema_Player;
 };
 $hxClasses["client.schema.FaeranState"] = client_schema_FaeranState;
 client_schema_FaeranState.__name__ = "client.schema.FaeranState";
 client_schema_FaeranState.__super__ = io_colyseus_serializer_schema_Schema;
 client_schema_FaeranState.prototype = $extend(io_colyseus_serializer_schema_Schema.prototype,{
 	__class__: client_schema_FaeranState
+});
+var client_schema_Player = function() {
+	this.name = "";
+	this.clientId = "";
+	io_colyseus_serializer_schema_Schema.call(this);
+	this._indexes.h[0] = "clientId";
+	this._types.h[0] = "string";
+	this._indexes.h[1] = "name";
+	this._types.h[1] = "string";
+};
+$hxClasses["client.schema.Player"] = client_schema_Player;
+client_schema_Player.__name__ = "client.schema.Player";
+client_schema_Player.__super__ = io_colyseus_serializer_schema_Schema;
+client_schema_Player.prototype = $extend(io_colyseus_serializer_schema_Schema.prototype,{
+	__class__: client_schema_Player
 });
 var dn__$Cooldown_CdInst = function(k,f) {
 	this.k = k;
@@ -49314,6 +49332,113 @@ io_colyseus_serializer_schema_types_OrderedMap.prototype = {
 	}
 	,__class__: io_colyseus_serializer_schema_types_OrderedMap
 };
+var io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player = function() {
+	this.indexes = new haxe_ds_IntMap();
+	this.items = new io_colyseus_serializer_schema_types_OrderedMap(new haxe_ds_StringMap());
+	this.__isMapSchema = true;
+};
+$hxClasses["io.colyseus.serializer.schema.types.MapSchema_client_schema_Player"] = io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player;
+io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player.__name__ = "io.colyseus.serializer.schema.types.MapSchema_client_schema_Player";
+io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player.__interfaces__ = [io_colyseus_serializer_schema_types_ISchemaCollection,io_colyseus_serializer_schema_types_IRef];
+io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player.prototype = {
+	getIndex: function(fieldIndex) {
+		return this.indexes.get(fieldIndex);
+	}
+	,setIndex: function(fieldIndex,dynamicIndex) {
+		this.indexes.set(fieldIndex,dynamicIndex);
+	}
+	,getByIndex: function(fieldIndex) {
+		var index = this.indexes.get(fieldIndex);
+		if(index != null) {
+			return this.items.get(index);
+		} else {
+			return null;
+		}
+	}
+	,setByIndex: function(index,dynamicIndex,value) {
+		this.indexes.set(index,dynamicIndex);
+		this.items.set(dynamicIndex,value);
+	}
+	,deleteByIndex: function(fieldIndex) {
+		var index = this.indexes.get(fieldIndex);
+		this.items.remove(index);
+		this.indexes.remove(fieldIndex);
+	}
+	,get_length: function() {
+		return Lambda.count(this.items._keys);
+	}
+	,onAdd: function(item,key) {
+	}
+	,onChange: function(item,key) {
+	}
+	,onRemove: function(item,key) {
+	}
+	,invokeOnAdd: function(item,key) {
+		this.onAdd(item,key);
+	}
+	,invokeOnChange: function(item,key) {
+		this.onChange(item,key);
+	}
+	,invokeOnRemove: function(item,key) {
+		this.onRemove(item,key);
+	}
+	,moveEventHandlers: function(previousInstance) {
+		this.onAdd = previousInstance.onAdd;
+		this.onChange = previousInstance.onChange;
+		this.onRemove = previousInstance.onRemove;
+	}
+	,clear: function(refs) {
+		if(typeof(this._childType) != "string") {
+			var item = this.items.iterator();
+			while(item.hasNext()) {
+				var item1 = item.next();
+				refs.remove(Reflect.getProperty(item1,"__refId"));
+			}
+		}
+		this.items.clear();
+		this.indexes.clear();
+	}
+	,clone: function() {
+		var cloned = new io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player();
+		var _g = 0;
+		var _g1 = this.items._keys;
+		while(_g < _g1.length) {
+			var key = _g1[_g];
+			++_g;
+			cloned.items.set(key,this.items.get(key));
+		}
+		cloned.onAdd = $bind(this,this.onAdd);
+		cloned.onChange = $bind(this,this.onChange);
+		cloned.onRemove = $bind(this,this.onRemove);
+		return cloned;
+	}
+	,iterator: function() {
+		return this.items.iterator();
+	}
+	,keyValueIterator: function() {
+		return this.items.keyValueIterator();
+	}
+	,get: function(key) {
+		return this.items.get(key);
+	}
+	,arrayWrite: function(key,value) {
+		this.items.set(key,value);
+		return value;
+	}
+	,toString: function() {
+		var data = [];
+		var _g = 0;
+		var _g1 = this.items._keys;
+		while(_g < _g1.length) {
+			var key = _g1[_g];
+			++_g;
+			data.push(key + " => " + Std.string(this.items.get(key)));
+		}
+		return "MapSchema (" + Lambda.count(this.items) + ", __refId => " + this.__refId + ") { " + data.join(", ") + " }";
+	}
+	,__class__: io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player
+	,__properties__: {get_length:"get_length"}
+};
 var io_colyseus_state_$listener_Compare = function() { };
 $hxClasses["io.colyseus.state_listener.Compare"] = io_colyseus_state_$listener_Compare;
 io_colyseus_state_$listener_Compare.__name__ = "io.colyseus.state_listener.Compare";
@@ -50019,7 +50144,7 @@ ui_InfoBox.prototype = $extend(h2d_Flow.prototype,{
 		this.popQueue();
 	}
 	,sendChat: function() {
-		client_FaeranClient.ME.room.send("ChatRequest","" + this.nameInput.text + ":\n " + this.chatInput.text);
+		client_FaeranClient.ME.room.send("GlobalChat","" + this.nameInput.text + ":\n " + this.chatInput.text);
 	}
 	,popQueue: function() {
 		if(!this.writing && this.queue.length > 0) {
