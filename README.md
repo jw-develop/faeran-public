@@ -5,3 +5,8 @@ This is a WIP deck building / Turn-based strategy game. Details to come!
 
 # About
 Uses **Heaps** framework (https://heaps.io) and **Haxe** language (https://haxe.org).
+
+## Contributors
+- Jacob (bubbzo)
+- James (jw-develop)
+- Blake (volitar)
