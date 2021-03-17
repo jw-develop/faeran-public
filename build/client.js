@@ -147,7 +147,88 @@ Boot.prototype = $extend(hxd_App.prototype,{
 	}
 	,update: function(deltaTime) {
 		hxd_App.prototype.update.call(this,deltaTime);
+		var tmp;
+		if(!hxd_Key.isPressed(109)) {
+			var _this = Main.ME.ca;
+			var k = 13;
+			if(!(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer)) {
+				var tmp1;
+				var tmp2;
+				var tmp3;
+				var k1 = _this.parent.primary.h[k];
+				if(!(k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isPressed(k1))) {
+					var k1 = _this.parent.secondary.h[k];
+					tmp3 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isPressed(k1);
+				} else {
+					tmp3 = true;
+				}
+				if(!tmp3) {
+					var k1 = _this.parent.third.h[k];
+					tmp2 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isPressed(k1);
+				} else {
+					tmp2 = true;
+				}
+				if(!tmp2) {
+					var k1 = _this.parent.fourth.h[k];
+					tmp1 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isPressed(k1);
+				} else {
+					tmp1 = true;
+				}
+				tmp = tmp1 || _this.parent.gc.isPressed(k);
+			} else {
+				tmp = false;
+			}
+		} else {
+			tmp = true;
+		}
+		if(tmp) {
+			this.speed = this.speed >= 1 ? 0.33 : 1;
+		}
 		var tmod = hxd_Timer.dt * hxd_Timer.wantedFPS * this.speed;
+		var tmod1;
+		if(!hxd_Key.isDown(107)) {
+			if(Main.ME != null) {
+				var _this = Main.ME.ca;
+				var k = 6;
+				if(!(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer)) {
+					var tmod2;
+					var tmod3;
+					var tmod4;
+					var k1 = _this.parent.primary.h[k];
+					if(!(k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isDown(k1))) {
+						var k1 = _this.parent.secondary.h[k];
+						tmod4 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isDown(k1);
+					} else {
+						tmod4 = true;
+					}
+					if(!tmod4) {
+						var k1 = _this.parent.third.h[k];
+						tmod3 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isDown(k1);
+					} else {
+						tmod3 = true;
+					}
+					if(!tmod3) {
+						var k1 = _this.parent.fourth.h[k];
+						tmod2 = k1 != null && !(_this.manualLock || _this.parent.isLocked() || _this.parent.exclusiveId != null && _this.parent.exclusiveId != _this.id || HxOverrides.now() / 1000 < _this.parent.suspendTimer) && hxd_Key.isDown(k1);
+					} else {
+						tmod2 = true;
+					}
+					if(!tmod2) {
+						var _this1 = _this.parent.gc;
+						tmod1 = _this1.device != null && _this1.toggles[k] > 0;
+					} else {
+						tmod1 = true;
+					}
+				} else {
+					tmod1 = false;
+				}
+			} else {
+				tmod1 = false;
+			}
+		} else {
+			tmod1 = true;
+		}
+		tmod *= tmod1 ? 5 : 1;
 		dn_heaps_Controller.beforeUpdate();
 		dn_Process.updateAll(tmod);
 	}
@@ -897,13 +978,16 @@ var Game = function() {
 	new card_Hand();
 	new field_Field();
 	new ui_Supply();
+	new player_Lobby();
 	new client_FaeranClient();
 };
 $hxClasses["Game"] = Game;
 Game.__name__ = "Game";
 Game.__super__ = dn_Process;
 Game.prototype = $extend(dn_Process.prototype,{
-	onResize: function() {
+	onCdbReload: function() {
+	}
+	,onResize: function() {
 		dn_Process.prototype.onResize.call(this);
 		var _this = this.scroller;
 		var v = Const.SCALE;
@@ -1134,12 +1218,23 @@ Lang.init = function(lid) {
 	Lang.t.readMo(hxd_Res.load("lang/" + Lang.CUR + ".mo").entry.getBytes());
 };
 var Main = function(s) {
+	var _gthis = this;
 	dn_Process.call(this);
 	Main.ME = this;
 	this.createRoot(s);
 	hxd_Timer.wantedFPS = Const.FPS;
 	h3d_Engine.CURRENT.backgroundColor = -15658701;
 	hxd_Res.set_loader(new hxd_res_Loader(new hxd_fs_EmbedFileSystem(haxe_Unserializer.run("oy10:props.jsonty5:atlasoy14:cardBase.atlasty12:cardBase.xcfty9:tiles.pngty11:tiles.atlasty12:cardBase.pngty14:cardLayers.xcftgy5:fieldoy9:field.pngtgy4:cardoy15:shop_keeper.pngty13:work_crew.pngty15:placeholder.pngty12:merchant.pngty8:wall.pngty10:farmer.pngty19:hanging_gardens.pngty17:village_labor.pngty11:repairs.pngty17:stir_peasants.pngty10:palace.pngty17:building_team.pngty8:gate.pngtgy16:public_readme.mdty5:fontsoy38:barlow_condensed_medium_regular_17.pngty38:barlow_condensed_medium_regular_17.fntty22:minecraftiaOutline.pngty37:barlow_condensed_medium_regular_9.fntty38:barlow_condensed_medium_regular_32.fntty22:minecraftiaOutline.fntty38:barlow_condensed_medium_regular_11.fntty37:barlow_condensed_medium_regular_9.pngty38:barlow_condensed_medium_regular_32.pngty38:barlow_condensed_medium_regular_11.pngtgy4:langoy5:en.poty5:en.moty15:sourceTexts.pottgy8:data.cdbtg"))));
+	hxd_res_Resource.LIVE_UPDATE = true;
+	hxd_Res.get_loader().loadCache("data.cdb",hxd_res_Resource).watch(function() {
+		_gthis.delayer.cancelById("cdb");
+		_gthis.delayer.addS("cdb",function() {
+			Data.load(hxd_Res.get_loader().loadCache("data.cdb",hxd_res_Resource).entry.getBytes().toString());
+			if(Game.ME != null) {
+				Game.ME.onCdbReload();
+			}
+		},0.2);
+	});
 	Assets.init();
 	new ui_Console(Assets.fontTiny,s);
 	Lang.init("en");
@@ -3544,6 +3639,17 @@ h2d_Flow.prototype = $extend(h2d_Object.prototype,{
 			}
 		}
 	}
+	,removeChildren: function() {
+		var k = 0;
+		while(this.children.length > k) {
+			var c = this.children[k];
+			if(c == this.background || c == this.interactive || c == this.debugGraphics) {
+				++k;
+			} else {
+				this.removeChild(c);
+			}
+		}
+	}
 	,sync: function(ctx) {
 		if(!this.isConstraint && (this.fillWidth || this.fillHeight)) {
 			var scene = ctx.scene;
@@ -4729,25 +4835,46 @@ cdb_IndexId.prototype = $extend(cdb_Index.prototype,{
 var client_FaeranClient = function() {
 	var _gthis = this;
 	client_FaeranClient.ME = this;
-	var client = new io_colyseus_Client("wss://faeran-server-qmjhvcvdwa-uc.a.run.app");
+	var client = new io_colyseus_Client("ws://localhost:8080");
 	client.joinOrCreate_client_schema_FaeranState("friedman",new haxe_ds_StringMap(),client_schema_FaeranState,function(err,room) {
 		if(err != null) {
-			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 26, className : "client.FaeranClient", methodName : "new"});
+			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 35, className : "client.FaeranClient", methodName : "new"});
 			return;
 		}
-		room.onMessage(client_FaeranClient_MessageDelivery.CHAT,function(msg) {
+		_gthis.room = room;
+		room.onMessage("Chat",function(msg) {
 			ui_InfoBox.ME.write(msg);
 		});
-		room.onMessage(client_FaeranClient_MessageDelivery.SET_NAME,function(name) {
-			ui_InfoBox.ME.nameInput.set_text(name);
+		room.onMessage("SetIdentity",function(p) {
+			new player_Identity(p);
 		});
-		_gthis.room = room;
+		room.get_state().players.onAdd = function(player,key) {
+			var list = [];
+			var p = room.get_state().players.iterator();
+			while(p.hasNext()) {
+				var p1 = p.next();
+				list.push(p1);
+			}
+			player_Lobby.ME.setPlayers(list);
+		};
+		room.get_state().players.onRemove = function(player,key) {
+			var list = [];
+			var p = room.get_state().players.iterator();
+			while(p.hasNext()) {
+				var p1 = p.next();
+				list.push(p1);
+			}
+			player_Lobby.ME.setPlayers(list);
+		};
 	});
 };
 $hxClasses["client.FaeranClient"] = client_FaeranClient;
 client_FaeranClient.__name__ = "client.FaeranClient";
 client_FaeranClient.prototype = {
-	__class__: client_FaeranClient
+	send: function(type,meta) {
+		this.room.send(type,meta);
+	}
+	,__class__: client_FaeranClient
 };
 var io_colyseus_serializer_schema_types_IRef = function() { };
 $hxClasses["io.colyseus.serializer.schema.types.IRef"] = io_colyseus_serializer_schema_types_IRef;
@@ -5207,6 +5334,7 @@ client_schema_FaeranState.prototype = $extend(io_colyseus_serializer_schema_Sche
 	__class__: client_schema_FaeranState
 });
 var client_schema_Player = function() {
+	this.color = 0;
 	this.name = "";
 	this.clientId = "";
 	io_colyseus_serializer_schema_Schema.call(this);
@@ -5214,6 +5342,8 @@ var client_schema_Player = function() {
 	this._types.h[0] = "string";
 	this._indexes.h[1] = "name";
 	this._types.h[1] = "string";
+	this._indexes.h[2] = "color";
+	this._types.h[2] = "number";
 };
 $hxClasses["client.schema.Player"] = client_schema_Player;
 client_schema_Player.__name__ = "client.schema.Player";
@@ -5221,6 +5351,66 @@ client_schema_Player.__super__ = io_colyseus_serializer_schema_Schema;
 client_schema_Player.prototype = $extend(io_colyseus_serializer_schema_Schema.prototype,{
 	__class__: client_schema_Player
 });
+var haxe_IMap = function() { };
+$hxClasses["haxe.IMap"] = haxe_IMap;
+haxe_IMap.__name__ = "haxe.IMap";
+haxe_IMap.__isInterface__ = true;
+haxe_IMap.prototype = {
+	__class__: haxe_IMap
+};
+var haxe_ds_IntMap = function() {
+	this.h = { };
+};
+$hxClasses["haxe.ds.IntMap"] = haxe_ds_IntMap;
+haxe_ds_IntMap.__name__ = "haxe.ds.IntMap";
+haxe_ds_IntMap.__interfaces__ = [haxe_IMap];
+haxe_ds_IntMap.prototype = {
+	set: function(key,value) {
+		this.h[key] = value;
+	}
+	,get: function(key) {
+		return this.h[key];
+	}
+	,exists: function(key) {
+		return this.h.hasOwnProperty(key);
+	}
+	,remove: function(key) {
+		if(!this.h.hasOwnProperty(key)) {
+			return false;
+		}
+		delete(this.h[key]);
+		return true;
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h ) if(this.h.hasOwnProperty(key)) a.push(key | 0);
+		return new haxe_iterators_ArrayIterator(a);
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref[i];
+		}};
+	}
+	,keyValueIterator: function() {
+		return new haxe_iterators_MapKeyValueIterator(this);
+	}
+	,copy: function() {
+		var copied = new haxe_ds_IntMap();
+		var key = this.keys();
+		while(key.hasNext()) {
+			var key1 = key.next();
+			copied.h[key1] = this.h[key1];
+		}
+		return copied;
+	}
+	,clear: function() {
+		this.h = { };
+	}
+	,__class__: haxe_ds_IntMap
+};
 var dn__$Cooldown_CdInst = function(k,f) {
 	this.k = k;
 	this.frames = f;
@@ -5297,6 +5487,14 @@ dn_Delayer.prototype = {
 	destroy: function() {
 		this.delays = null;
 	}
+	,cancelById: function(id) {
+		var i = 0;
+		while(i < this.delays.length) if(this.delays[i].id == id) {
+			this.delays.splice(i,1);
+		} else {
+			++i;
+		}
+	}
 	,cmp: function(a,b) {
 		if(a.t < b.t) {
 			return -1;
@@ -5308,6 +5506,10 @@ dn_Delayer.prototype = {
 	}
 	,addMs: function(id,cb,ms) {
 		this.delays.push(new dn__$Delayer_Task(id,ms / 1000 * this.fps,cb));
+		haxe_ds_ArraySort.sort(this.delays,$bind(this,this.cmp));
+	}
+	,addS: function(id,cb,sec) {
+		this.delays.push(new dn__$Delayer_Task(id,sec * this.fps,cb));
 		haxe_ds_ArraySort.sort(this.delays,$bind(this,this.cmp));
 	}
 	,addF: function(id,cb,frames) {
@@ -5716,8 +5918,10 @@ dn_heaps_Mode.__empty_constructs__ = [dn_heaps_Mode.Keyboard,dn_heaps_Mode.Pad];
 var dn_heaps_Controller = function(s2d) {
 	this.hasAnyPress = false;
 	this.longPressLock = new haxe_ds_IntMap();
-	this.framePresses = new Array(28);
-	this.pressTimers = new Array(28);
+	var this1 = new Array(28);
+	this.framePresses = this1;
+	var this1 = new Array(28);
+	this.pressTimers = this1;
 	this.fourth = new haxe_ds_IntMap();
 	this.third = new haxe_ds_IntMap();
 	this.secondary = new haxe_ds_IntMap();
@@ -6629,6 +6833,7 @@ dn_heaps_assets_Atlas.load = function(atlasPath,onReload,notZeroBaseds,propertie
 	var atlas = res.to(hxd_res_Atlas);
 	var lib = dn_heaps_assets_Atlas.convertToSlib(atlas,notZeroMap,propertiesMap,atlasPath);
 	res.watch(function() {
+		haxe_Log.trace("Reloaded atlas.",{ fileName : "dn/heaps/assets/Atlas.hx", lineNumber : 41, className : "dn.heaps.assets.Atlas", methodName : "load"});
 		dn_heaps_assets_Atlas.convertToSlib(atlas,notZeroMap,propertiesMap,atlasPath);
 		if(onReload != null) {
 			onReload();
@@ -6863,6 +7068,44 @@ dn_heaps_slib__$AnimManager_Transition.__name__ = "dn.heaps.slib._AnimManager.Tr
 dn_heaps_slib__$AnimManager_Transition.prototype = {
 	__class__: dn_heaps_slib__$AnimManager_Transition
 };
+var haxe_ds_StringMap = function() {
+	this.h = Object.create(null);
+};
+$hxClasses["haxe.ds.StringMap"] = haxe_ds_StringMap;
+haxe_ds_StringMap.__name__ = "haxe.ds.StringMap";
+haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
+haxe_ds_StringMap.prototype = {
+	exists: function(key) {
+		return Object.prototype.hasOwnProperty.call(this.h,key);
+	}
+	,get: function(key) {
+		return this.h[key];
+	}
+	,set: function(key,value) {
+		this.h[key] = value;
+	}
+	,remove: function(key) {
+		if(Object.prototype.hasOwnProperty.call(this.h,key)) {
+			delete(this.h[key]);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	,keys: function() {
+		return new haxe_ds__$StringMap_StringMapKeyIterator(this.h);
+	}
+	,iterator: function() {
+		return new haxe_ds__$StringMap_StringMapValueIterator(this.h);
+	}
+	,keyValueIterator: function() {
+		return new haxe_ds__$StringMap_StringMapKeyValueIterator(this.h);
+	}
+	,clear: function() {
+		this.h = Object.create(null);
+	}
+	,__class__: haxe_ds_StringMap
+};
 var dn_heaps_slib_AnimManager = function(spr) {
 	this.S_STAR = "*";
 	this.suspendF = 0.;
@@ -6896,6 +7139,7 @@ dn_heaps_slib_AnimManager.prototype = {
 		var _this = this.spr.lib;
 		var g = group == null ? _this.currentGroup : _this.groups.h[group];
 		if(g == null) {
+			haxe_Log.trace("WARNING: unknown anim " + group,{ fileName : "dn/heaps/slib/AnimManager.hx", lineNumber : 233, className : "dn.heaps.slib.AnimManager", methodName : "play"});
 			return this;
 		}
 		if(g.anim == null || g.anim.length == 0) {
@@ -6918,6 +7162,8 @@ dn_heaps_slib_AnimManager.prototype = {
 					this.stack.splice(0,0,a);
 					a.speed = t.spd;
 					a.reverse = t.reverse;
+				} else {
+					haxe_Log.trace("WARNING: unknown transition anim " + t.anim,{ fileName : "dn/heaps/slib/AnimManager.hx", lineNumber : 401, className : "dn.heaps.slib.AnimManager", methodName : "initCurrentAnim"});
 				}
 			}
 			var _this = this.stack[0];
@@ -7074,6 +7320,8 @@ dn_heaps_slib_AnimManager.prototype = {
 								this.stack.splice(0,0,a1);
 								a1.speed = t.spd;
 								a1.reverse = t.reverse;
+							} else {
+								haxe_Log.trace("WARNING: unknown transition anim " + t.anim,{ fileName : "dn/heaps/slib/AnimManager.hx", lineNumber : 401, className : "dn.heaps.slib.AnimManager", methodName : "initCurrentAnim"});
 							}
 						}
 						var _this1 = this.stack[0];
@@ -26843,6 +27091,7 @@ var h3d_scene_Scene = function(createRenderer,createLightSystem) {
 	if(createRenderer == null) {
 		createRenderer = true;
 	}
+	this.checkPasses = true;
 	h3d_scene_Object.call(this,null);
 	this.window = hxd_Window.getInstance();
 	this.eventListeners = [];
@@ -27369,6 +27618,16 @@ h3d_scene_Scene.prototype = $extend(h3d_scene_Object.prototype,{
 			this.lightSystem.initLights(this.ctx);
 		}
 		this.renderer.process(passes);
+		if(!this.ctx.computingStatic && this.checkPasses) {
+			var _g = 0;
+			while(_g < passes.length) {
+				var p = passes[_g];
+				++_g;
+				if(!p.rendered) {
+					haxe_Log.trace("Pass " + p.name + " has not been rendered : don't know how to handle.",{ fileName : "h3d/scene/Scene.hx", lineNumber : 438, className : "h3d.scene.Scene", methodName : "render"});
+				}
+			}
+		}
 		if(this.camera.rightHanded) {
 			engine.driver.setRenderFlag(h3d_impl_RenderFlag.CameraHandness,0);
 		}
@@ -28826,13 +29085,6 @@ h3d_shader_VolumeDecal.prototype = $extend(hxsl_Shader.prototype,{
 	}
 	,__class__: h3d_shader_VolumeDecal
 });
-var haxe_IMap = function() { };
-$hxClasses["haxe.IMap"] = haxe_IMap;
-haxe_IMap.__name__ = "haxe.IMap";
-haxe_IMap.__isInterface__ = true;
-haxe_IMap.prototype = {
-	__class__: haxe_IMap
-};
 var haxe_EntryPoint = function() { };
 $hxClasses["haxe.EntryPoint"] = haxe_EntryPoint;
 haxe_EntryPoint.__name__ = "haxe.EntryPoint";
@@ -30310,59 +30562,6 @@ haxe_ds_EnumValueMap.prototype = $extend(haxe_ds_BalancedTree.prototype,{
 	}
 	,__class__: haxe_ds_EnumValueMap
 });
-var haxe_ds_IntMap = function() {
-	this.h = { };
-};
-$hxClasses["haxe.ds.IntMap"] = haxe_ds_IntMap;
-haxe_ds_IntMap.__name__ = "haxe.ds.IntMap";
-haxe_ds_IntMap.__interfaces__ = [haxe_IMap];
-haxe_ds_IntMap.prototype = {
-	set: function(key,value) {
-		this.h[key] = value;
-	}
-	,get: function(key) {
-		return this.h[key];
-	}
-	,exists: function(key) {
-		return this.h.hasOwnProperty(key);
-	}
-	,remove: function(key) {
-		if(!this.h.hasOwnProperty(key)) {
-			return false;
-		}
-		delete(this.h[key]);
-		return true;
-	}
-	,keys: function() {
-		var a = [];
-		for( var key in this.h ) if(this.h.hasOwnProperty(key)) a.push(key | 0);
-		return new haxe_iterators_ArrayIterator(a);
-	}
-	,iterator: function() {
-		return { ref : this.h, it : this.keys(), hasNext : function() {
-			return this.it.hasNext();
-		}, next : function() {
-			var i = this.it.next();
-			return this.ref[i];
-		}};
-	}
-	,keyValueIterator: function() {
-		return new haxe_iterators_MapKeyValueIterator(this);
-	}
-	,copy: function() {
-		var copied = new haxe_ds_IntMap();
-		var key = this.keys();
-		while(key.hasNext()) {
-			var key1 = key.next();
-			copied.h[key1] = this.h[key1];
-		}
-		return copied;
-	}
-	,clear: function() {
-		this.h = { };
-	}
-	,__class__: haxe_ds_IntMap
-};
 var haxe_ds_List = function() {
 	this.length = 0;
 };
@@ -30465,44 +30664,6 @@ haxe_ds_ObjectMap.prototype = {
 		this.h = { __keys__ : { }};
 	}
 	,__class__: haxe_ds_ObjectMap
-};
-var haxe_ds_StringMap = function() {
-	this.h = Object.create(null);
-};
-$hxClasses["haxe.ds.StringMap"] = haxe_ds_StringMap;
-haxe_ds_StringMap.__name__ = "haxe.ds.StringMap";
-haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
-haxe_ds_StringMap.prototype = {
-	exists: function(key) {
-		return Object.prototype.hasOwnProperty.call(this.h,key);
-	}
-	,get: function(key) {
-		return this.h[key];
-	}
-	,set: function(key,value) {
-		this.h[key] = value;
-	}
-	,remove: function(key) {
-		if(Object.prototype.hasOwnProperty.call(this.h,key)) {
-			delete(this.h[key]);
-			return true;
-		} else {
-			return false;
-		}
-	}
-	,keys: function() {
-		return new haxe_ds__$StringMap_StringMapKeyIterator(this.h);
-	}
-	,iterator: function() {
-		return new haxe_ds__$StringMap_StringMapValueIterator(this.h);
-	}
-	,keyValueIterator: function() {
-		return new haxe_ds__$StringMap_StringMapKeyValueIterator(this.h);
-	}
-	,clear: function() {
-		this.h = Object.create(null);
-	}
-	,__class__: haxe_ds_StringMap
 };
 var haxe_ds__$StringMap_StringMapKeyIterator = function(h) {
 	this.h = h;
@@ -36993,6 +37154,9 @@ hxd_res_NanoJpeg.prototype = {
 			this.bufbits += 8;
 			this.buf = this.buf << 8 | newbyte;
 			if(newbyte == 255) {
+				if(this.size == 0) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 				var marker = this.bytes.b[this.pos];
 				this.pos++;
 				this.size--;
@@ -37003,6 +37167,9 @@ hxd_res_NanoJpeg.prototype = {
 				case 0:case 255:
 					break;
 				default:
+					if((marker & 248) != 208) {
+						throw haxe_Exception.thrown("Invalid JPEG file");
+					}
 					this.buf = this.buf << 8 | marker;
 					this.bufbits += 8;
 				}
@@ -37011,10 +37178,22 @@ hxd_res_NanoJpeg.prototype = {
 		return this.buf >> this.bufbits - bits & (1 << bits) - 1;
 	}
 	,njDecodeSOF: function() {
+		if(this.size < 2) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.length = this.bytes.b[this.pos] << 8 | this.bytes.b[this.pos + 1];
+		if(this.length > this.size) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.pos += 2;
 		this.size -= 2;
 		this.length -= 2;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
+		if(this.length < 9) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		if(this.bytes.b[this.pos] != 8) {
 			this.notSupported();
 		}
@@ -37024,11 +37203,17 @@ hxd_res_NanoJpeg.prototype = {
 		this.pos += 6;
 		this.size -= 6;
 		this.length -= 6;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		switch(this.ncomp) {
 		case 1:case 3:
 			break;
 		default:
 			this.notSupported();
+		}
+		if(this.length < this.ncomp * 3) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
 		}
 		var ssxmax = 0;
 		var ssymax = 0;
@@ -37039,17 +37224,29 @@ hxd_res_NanoJpeg.prototype = {
 			var c = this.comps[i];
 			c.cid = this.bytes.b[this.pos];
 			c.ssx = this.bytes.b[this.pos + 1] >> 4;
+			if(c.ssx == 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			if((c.ssx & c.ssx - 1) != 0) {
 				this.notSupported();
 			}
 			c.ssy = this.bytes.b[this.pos + 1] & 15;
+			if(c.ssy == 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			if((c.ssy & c.ssy - 1) != 0) {
 				this.notSupported();
 			}
 			c.qtsel = this.bytes.b[this.pos + 2];
+			if((c.qtsel & 252) != 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			this.pos += 3;
 			this.size -= 3;
 			this.length -= 3;
+			if(this.size < 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			this.qtused |= 1 << c.qtsel;
 			if(c.ssx > ssxmax) {
 				ssxmax = c.ssx;
@@ -37086,14 +37283,29 @@ hxd_res_NanoJpeg.prototype = {
 		this.pos += count;
 		this.size -= count;
 		this.length -= count;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 	}
 	,njDecodeDQT: function() {
+		if(this.size < 2) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.length = this.bytes.b[this.pos] << 8 | this.bytes.b[this.pos + 1];
+		if(this.length > this.size) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.pos += 2;
 		this.size -= 2;
 		this.length -= 2;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		while(this.length >= 65) {
 			var i = this.bytes.b[this.pos];
+			if((i & 252) != 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			this.qtavail |= 1 << i;
 			var t = this.qtab[i];
 			var _g = 0;
@@ -37104,15 +37316,33 @@ hxd_res_NanoJpeg.prototype = {
 			this.pos += 65;
 			this.size -= 65;
 			this.length -= 65;
+			if(this.size < 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
+		}
+		if(this.length != 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
 		}
 	}
 	,njDecodeDHT: function() {
+		if(this.size < 2) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.length = this.bytes.b[this.pos] << 8 | this.bytes.b[this.pos + 1];
+		if(this.length > this.size) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.pos += 2;
 		this.size -= 2;
 		this.length -= 2;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		while(this.length >= 17) {
 			var i = this.bytes.b[this.pos];
+			if((i & 236) != 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			i = i >> 4 & 1 | (i & 3) << 1;
 			this.counts[0] = this.bytes.b[this.pos + 1];
 			this.counts[1] = this.bytes.b[this.pos + 2];
@@ -37133,6 +37363,9 @@ hxd_res_NanoJpeg.prototype = {
 			this.pos += 17;
 			this.size -= 17;
 			this.length -= 17;
+			if(this.size < 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			var vlc = this.vlctab[i];
 			var vpos = 0;
 			var remain = 65536;
@@ -37145,7 +37378,13 @@ hxd_res_NanoJpeg.prototype = {
 				if(currcnt == 0) {
 					continue;
 				}
+				if(this.length < currcnt) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 				remain -= currcnt << 16 - codelen;
+				if(remain < 0) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 				var _g1 = 0;
 				var _g2 = currcnt;
 				while(_g1 < _g2) {
@@ -37162,23 +37401,44 @@ hxd_res_NanoJpeg.prototype = {
 				this.pos += currcnt;
 				this.size -= currcnt;
 				this.length -= currcnt;
+				if(this.size < 0) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 			}
 			while(remain-- != 0) {
 				vlc.b[vpos] = 0;
 				vpos += 2;
 			}
 		}
+		if(this.length != 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 	}
 	,njDecodeDRI: function() {
+		if(this.size < 2) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.length = this.bytes.b[this.pos] << 8 | this.bytes.b[this.pos + 1];
+		if(this.length > this.size) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.pos += 2;
 		this.size -= 2;
 		this.length -= 2;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
+		if(this.length < 2) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.rstinterval = this.bytes.b[this.pos] << 8 | this.bytes.b[this.pos + 1];
 		var count = this.length;
 		this.pos += count;
 		this.size -= count;
 		this.length -= count;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 	}
 	,njDecodeBlock: function(c,po) {
 		var this1 = c.pixels;
@@ -37195,6 +37455,9 @@ hxd_res_NanoJpeg.prototype = {
 		var vlc = this.vlctab[c.dctabsel];
 		var value1 = this.njShowBits(16);
 		var bits = vlc.b[value1 << 1];
+		if(bits == 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		if(this.bufbits < bits) {
 			this.njShowBits(bits);
 		}
@@ -37221,6 +37484,9 @@ hxd_res_NanoJpeg.prototype = {
 		while(true) {
 			var value1 = this.njShowBits(16);
 			var bits = at.b[value1 << 1];
+			if(bits == 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			if(this.bufbits < bits) {
 				this.njShowBits(bits);
 			}
@@ -37242,7 +37508,13 @@ hxd_res_NanoJpeg.prototype = {
 			if(this.vlcCode == 0) {
 				break;
 			}
+			if((this.vlcCode & 15) == 0 && this.vlcCode != 240) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			coef += (this.vlcCode >> 4) + 1;
+			if(coef > 63) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			this.block[this.njZZ[coef]] = value * qt[coef];
 			if(!(coef < 63)) {
 				break;
@@ -38277,26 +38549,50 @@ hxd_res_NanoJpeg.prototype = {
 		throw haxe_Exception.thrown("This JPG file is not supported");
 	}
 	,njDecodeScan: function() {
+		if(this.size < 2) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.length = this.bytes.b[this.pos] << 8 | this.bytes.b[this.pos + 1];
+		if(this.length > this.size) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		this.pos += 2;
 		this.size -= 2;
 		this.length -= 2;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
+		if(this.length < 4 + 2 * this.ncomp) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		if(this.bytes.b[this.pos] != this.ncomp) {
 			this.notSupported();
 		}
 		this.pos += 1;
 		this.size -= 1;
 		this.length -= 1;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		var _g = 0;
 		var _g1 = this.ncomp;
 		while(_g < _g1) {
 			var i = _g++;
 			var c = this.comps[i];
+			if(this.bytes.b[this.pos] != c.cid) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
+			if((this.bytes.b[this.pos + 1] & 236) != 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			c.dctabsel = this.bytes.b[this.pos + 1] >> 4 << 1;
 			c.actabsel = (this.bytes.b[this.pos + 1] & 3) << 1 | 1;
 			this.pos += 2;
 			this.size -= 2;
 			this.length -= 2;
+			if(this.size < 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 		}
 		var start = this.bytes.b[this.pos];
 		var count = this.bytes.b[this.pos + 1];
@@ -38308,6 +38604,9 @@ hxd_res_NanoJpeg.prototype = {
 		this.pos += count;
 		this.size -= count;
 		this.length -= count;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		var mbx = 0;
 		var mby = 0;
 		var rstcount = this.rstinterval;
@@ -38341,6 +38640,9 @@ hxd_res_NanoJpeg.prototype = {
 				var r = this.njShowBits(16);
 				this.bufbits -= 16;
 				var i1 = r;
+				if((i1 & 65528) != 65488 || (i1 & 7) != nextrst) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 				nextrst = nextrst + 1 & 7;
 				rstcount = this.rstinterval;
 				this.comps[0].dcpred = 0;
@@ -38554,10 +38856,19 @@ hxd_res_NanoJpeg.prototype = {
 		this.pos += 2;
 		this.size -= 2;
 		this.length -= 2;
+		if(this.size < 0) {
+			throw haxe_Exception.thrown("Invalid JPEG file");
+		}
 		_hx_loop1: while(true) {
+			if(this.size < 2 || this.bytes.b[this.pos] != 255) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			this.pos += 2;
 			this.size -= 2;
 			this.length -= 2;
+			if(this.size < 0) {
+				throw haxe_Exception.thrown("Invalid JPEG file");
+			}
 			switch(this.bytes.b[this.pos + (-1)]) {
 			case 192:
 				this.njDecodeSOF();
@@ -38596,28 +38907,52 @@ hxd_res_NanoJpeg.prototype = {
 				this.njDecodeDRI();
 				break;
 			case 254:
+				if(this.size < 2) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 				this.length = this.bytes.b[this.pos] << 8 | this.bytes.b[this.pos + 1];
+				if(this.length > this.size) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 				this.pos += 2;
 				this.size -= 2;
 				this.length -= 2;
+				if(this.size < 0) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 				var count = this.length;
 				this.pos += count;
 				this.size -= count;
 				this.length -= count;
+				if(this.size < 0) {
+					throw haxe_Exception.thrown("Invalid JPEG file");
+				}
 				break;
 			default:
 				switch(this.bytes.b[this.pos + (-1)] & 240) {
 				case 192:
 					throw haxe_Exception.thrown("Unsupported jpeg type " + (this.bytes.b[this.pos + (-1)] & 15));
 				case 224:
+					if(this.size < 2) {
+						throw haxe_Exception.thrown("Invalid JPEG file");
+					}
 					this.length = this.bytes.b[this.pos] << 8 | this.bytes.b[this.pos + 1];
+					if(this.length > this.size) {
+						throw haxe_Exception.thrown("Invalid JPEG file");
+					}
 					this.pos += 2;
 					this.size -= 2;
 					this.length -= 2;
+					if(this.size < 0) {
+						throw haxe_Exception.thrown("Invalid JPEG file");
+					}
 					var count1 = this.length;
 					this.pos += count1;
 					this.size -= count1;
 					this.length -= count1;
+					if(this.size < 0) {
+						throw haxe_Exception.thrown("Invalid JPEG file");
+					}
 					break;
 				default:
 					throw haxe_Exception.thrown("Unsupported jpeg tag 0x" + StringTools.hex(this.bytes.b[this.pos + (-1)],2));
@@ -39768,6 +40103,12 @@ hxsl_Cache.prototype = {
 		haxe_ds_ArraySort.sort(shaderDatas,function(s1,s2) {
 			return s2.p - s1.p;
 		});
+		var _g = 0;
+		while(_g < shaderDatas.length) {
+			var s = shaderDatas[_g];
+			++_g;
+			hxsl_Printer.check(s.inst.shader);
+		}
 		var linker = new hxsl_Linker(batchMode);
 		var s;
 		try {
@@ -39830,6 +40171,14 @@ hxsl_Cache.prototype = {
 				checkRec(v);
 			}
 		}
+		var _g = [];
+		var _g1 = 0;
+		while(_g1 < shaderDatas.length) {
+			var s1 = shaderDatas[_g1];
+			++_g1;
+			_g.push(s1.inst.shader);
+		}
+		hxsl_Printer.check(s,_g);
 		var paramVars = new haxe_ds_IntMap();
 		var _g = 0;
 		var _g1 = linker.allVars;
@@ -39860,15 +40209,19 @@ hxsl_Cache.prototype = {
 				throw _g;
 			}
 		}
+		hxsl_Printer.check(s1.vertex,[prev]);
+		hxsl_Printer.check(s1.fragment,[prev]);
 		var prev = s1;
 		var s = new hxsl_Dce().dce(s1.vertex,s1.fragment);
+		hxsl_Printer.check(s.vertex,[prev.vertex]);
+		hxsl_Printer.check(s.fragment,[prev.fragment]);
 		var r = this.buildRuntimeShader(s.vertex,s.fragment,paramVars);
 		var _g = [];
-		var _g4_l = shaders;
-		var _g4_last = null;
-		while(_g4_l != _g4_last) {
-			var s = _g4_l.s;
-			_g4_l = _g4_l.next;
+		var _g7_l = shaders;
+		var _g7_last = null;
+		while(_g7_l != _g7_last) {
+			var s = _g7_l.s;
+			_g7_l = _g7_l.next;
 			var s1 = s;
 			_g.push(new hxsl_ShaderInstanceDesc(s1.shader,s1.constBits));
 		}
@@ -39909,6 +40262,8 @@ hxsl_Cache.prototype = {
 		r.globals = new haxe_ds_IntMap();
 		this.initGlobals(r,r.vertex);
 		this.initGlobals(r,r.fragment);
+		hxsl_Printer.check(r.vertex.data,[vertex]);
+		hxsl_Printer.check(r.fragment.data,[fragment]);
 		return r;
 	}
 	,initGlobals: function(r,s) {
@@ -46766,6 +47121,130 @@ hxsl_Printer.shaderToString = function(s,varId) {
 	}
 	return new hxsl_Printer(varId).shaderString(s);
 };
+hxsl_Printer.check = function(s,from) {
+	try {
+		var vars = new haxe_ds_IntMap();
+		var regVars = [];
+		var regVar = null;
+		regVar = function(v,reg) {
+			if(reg) {
+				if(vars.h.hasOwnProperty(v.id)) {
+					throw haxe_Exception.thrown("Duplicate var " + v.id);
+				}
+				vars.h[v.id] = v;
+				regVars.push(v);
+			} else {
+				vars.remove(v.id);
+			}
+			var _g = v.type;
+			if(_g._hx_index == 13) {
+				var vl = _g.vl;
+				var _g = 0;
+				while(_g < vl.length) {
+					var v = vl[_g];
+					++_g;
+					regVar(v,reg);
+				}
+			}
+		};
+		var checkExpr = null;
+		checkExpr = function(e) {
+			var _g = e.e;
+			switch(_g._hx_index) {
+			case 1:
+				var v = _g.v;
+				if(!vars.h.hasOwnProperty(v.id)) {
+					throw haxe_Exception.thrown("Unbound var " + v.name + "@" + v.id);
+				}
+				break;
+			case 4:
+				var el = _g.el;
+				var old = regVars;
+				regVars = [];
+				var _g1 = 0;
+				while(_g1 < el.length) {
+					var e1 = el[_g1];
+					++_g1;
+					checkExpr(e1);
+				}
+				var _g1 = 0;
+				while(_g1 < regVars.length) {
+					var v = regVars[_g1];
+					++_g1;
+					regVar(v,false);
+				}
+				regVars = old;
+				break;
+			case 7:
+				var v = _g.v;
+				var init = _g.init;
+				if(init != null) {
+					checkExpr(init);
+				}
+				regVar(v,true);
+				break;
+			case 13:
+				var v = _g.v;
+				var it = _g.it;
+				var loop = _g.loop;
+				checkExpr(it);
+				regVar(v,true);
+				checkExpr(loop);
+				regVar(v,false);
+				break;
+			default:
+				hxsl_Tools.iter(e,checkExpr);
+			}
+		};
+		var _g = 0;
+		var _g1 = s.vars;
+		while(_g < _g1.length) {
+			var v = _g1[_g];
+			++_g;
+			regVar(v,true);
+		}
+		var _g = 0;
+		var _g1 = s.funs;
+		while(_g < _g1.length) {
+			var f = _g1[_g];
+			++_g;
+			var _g2 = 0;
+			var _g3 = f.args;
+			while(_g2 < _g3.length) {
+				var v = _g3[_g2];
+				++_g2;
+				regVar(v,true);
+			}
+			checkExpr(f.expr);
+			var _g4 = 0;
+			var _g5 = f.args;
+			while(_g4 < _g5.length) {
+				var v1 = _g5[_g4];
+				++_g4;
+				regVar(v1,false);
+			}
+		}
+	} catch( _g ) {
+		var _g1 = haxe_Exception.caught(_g).unwrap();
+		if(typeof(_g1) == "string") {
+			var e = _g1;
+			var msg = e + "\n    in\n" + hxsl_Printer.shaderToString(s,true);
+			if(from != null) {
+				var _g1 = [];
+				var _g2 = 0;
+				while(_g2 < from.length) {
+					var s = from[_g2];
+					++_g2;
+					_g1.push(hxsl_Printer.shaderToString(s,true));
+				}
+				msg += "\n    from\n\n" + _g1.join("\n\n");
+			}
+			throw haxe_Exception.thrown(msg);
+		} else {
+			throw _g;
+		}
+	}
+};
 hxsl_Printer.prototype = {
 	shaderString: function(s) {
 		this.buffer = new StringBuf();
@@ -47758,6 +48237,7 @@ hxsl_SharedShader.prototype = {
 		$eval.inlineCalls = true;
 		$eval.unrollLoops = hxsl_SharedShader.UNROLL_LOOPS;
 		var i = new hxsl_ShaderInstance($eval.eval(this.data));
+		hxsl_Printer.check(i.shader,[this.data]);
 		this.paramsCount = 0;
 		var _g = 0;
 		var _g1 = this.data.vars;
@@ -48424,10 +48904,14 @@ var io_colyseus_Room = function(name,cls) {
 	this.serializer = null;
 	this.serializerId = null;
 	this.onMessageHandlers = new haxe_ds_StringMap();
-	this.onLeave = [];
-	this.onError = [];
-	this.onStateChange = [];
-	this.onJoin = [];
+	var this1 = [];
+	this.onLeave = this1;
+	var this1 = [];
+	this.onError = this1;
+	var this1 = [];
+	this.onStateChange = this1;
+	var this1 = [];
+	this.onJoin = this1;
 	this.id = null;
 	this.name = name;
 	this.tmpStateClass = cls;
@@ -48506,6 +48990,9 @@ io_colyseus_Room.prototype = {
 		var k = this.getMessageHandlerKey(type);
 		this1.h[k] = callback;
 		return this;
+	}
+	,get_state: function() {
+		return this.serializer.getState();
 	}
 	,teardown: function() {
 		if(this.serializer != null) {
@@ -48614,6 +49101,7 @@ io_colyseus_Room.prototype = {
 		}
 	}
 	,__class__: io_colyseus_Room
+	,__properties__: {get_state:"get_state"}
 };
 var io_colyseus_error_MatchMakeError = function(code,message) {
 	this.code = code;
@@ -49345,13 +49833,13 @@ io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player.__name__ =
 io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player.__interfaces__ = [io_colyseus_serializer_schema_types_ISchemaCollection,io_colyseus_serializer_schema_types_IRef];
 io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player.prototype = {
 	getIndex: function(fieldIndex) {
-		return this.indexes.get(fieldIndex);
+		return this.indexes.h[fieldIndex];
 	}
 	,setIndex: function(fieldIndex,dynamicIndex) {
-		this.indexes.set(fieldIndex,dynamicIndex);
+		this.indexes.h[fieldIndex] = dynamicIndex;
 	}
 	,getByIndex: function(fieldIndex) {
-		var index = this.indexes.get(fieldIndex);
+		var index = this.indexes.h[fieldIndex];
 		if(index != null) {
 			return this.items.get(index);
 		} else {
@@ -49359,11 +49847,11 @@ io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player.prototype 
 		}
 	}
 	,setByIndex: function(index,dynamicIndex,value) {
-		this.indexes.set(index,dynamicIndex);
+		this.indexes.h[index] = dynamicIndex;
 		this.items.set(dynamicIndex,value);
 	}
 	,deleteByIndex: function(fieldIndex) {
-		var index = this.indexes.get(fieldIndex);
+		var index = this.indexes.h[fieldIndex];
 		this.items.remove(index);
 		this.indexes.remove(fieldIndex);
 	}
@@ -49399,7 +49887,7 @@ io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player.prototype 
 			}
 		}
 		this.items.clear();
-		this.indexes.clear();
+		this.indexes.h = { };
 	}
 	,clone: function() {
 		var cloned = new io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player();
@@ -50038,159 +50526,32 @@ org_msgpack_Encoder.prototype = {
 	}
 	,__class__: org_msgpack_Encoder
 };
-var ui_Console = function(f,p) {
-	h2d_Console.call(this,f,p);
-	this.posChanged = true;
-	this.scaleX *= 2;
-	this.posChanged = true;
-	this.scaleY *= 2;
-	ui_Console.ME = this;
-	h2d_Console.HIDE_LOG_TIMEOUT = 30;
-	dn_Lib.redirectTracesToH2dConsole(this);
+var player_Identity = function(p) {
+	player_Identity.ME = this;
+	this.p = p;
+	ui_InfoBox.ME.nameInput.set_text(p.name);
+	ui_InfoBox.ME.nameInput.set_textColor(p.color);
+	ui_InfoBox.ME.playerColor = p.color;
 };
-$hxClasses["ui.Console"] = ui_Console;
-ui_Console.__name__ = "ui.Console";
-ui_Console.__super__ = h2d_Console;
-ui_Console.prototype = $extend(h2d_Console.prototype,{
-	handleCommand: function(command) {
-		var flagReg_r = new RegExp("[/ \t]*\\+[ \t]*([\\w]+)","g".split("u").join(""));
-		h2d_Console.prototype.handleCommand.call(this,command.replace(flagReg_r,"/+ $1"));
-	}
-	,__class__: ui_Console
-});
-var ui_Hud = function() {
-	this.invalidated = true;
-	dn_Process.call(this,Game.ME);
-	this.createRootInLayers(Game.ME.root,Const.DP_UI);
-	this.root.set_filter(new h2d_filter_ColorMatrix());
-	this.flow = new h2d_Flow(this.root);
+$hxClasses["player.Identity"] = player_Identity;
+player_Identity.__name__ = "player.Identity";
+player_Identity.prototype = {
+	__class__: player_Identity
 };
-$hxClasses["ui.Hud"] = ui_Hud;
-ui_Hud.__name__ = "ui.Hud";
-ui_Hud.__super__ = dn_Process;
-ui_Hud.prototype = $extend(dn_Process.prototype,{
-	onResize: function() {
-		dn_Process.prototype.onResize.call(this);
-		var _this = this.root;
-		var v = Const.UI_SCALE;
-		_this.posChanged = true;
-		_this.scaleX = v;
-		_this.posChanged = true;
-		_this.scaleY = v;
-	}
-	,render: function() {
-	}
-	,postUpdate: function() {
-		dn_Process.prototype.postUpdate.call(this);
-		if(this.invalidated) {
-			this.invalidated = false;
-			this.render();
-		}
-	}
-	,__class__: ui_Hud
-});
-var ui_InfoBox = function() {
-	this.writing = false;
-	this.s = "";
-	this.queue = [];
-	var _gthis = this;
-	h2d_Flow.call(this);
-	ui_InfoBox.ME = this;
-	Game.ME.scroller.addChildAt(this,Const.DP_UI);
-	this.set_minHeight(this.set_maxHeight(Const.VIEWPORT_HEIGHT * .495));
-	this.set_minWidth(this.set_maxWidth(Const.VIEWPORT_WIDTH * .145));
-	this.posChanged = true;
-	this.x = Const.VIEWPORT_WIDTH * .85;
-	this.posChanged = true;
-	this.y = Const.VIEWPORT_HEIGHT * .5;
-	this.set_layout(h2d_FlowLayout.Vertical);
-	this.set_verticalAlign(h2d_FlowAlign.Top);
-	this.set_verticalSpacing(10);
-	this.nameInput = new h2d_TextInput(Assets.fontMedium);
-	this.nameInput.set_text("Name");
-	this.nameInput.set_textColor(11184810);
-	this.addChild(this.nameInput);
-	this.nameInput.onFocus = function(_) {
-		_gthis.nameInput.set_textColor(16777215);
-	};
-	this.nameInput.onFocusLost = function(_) {
-		_gthis.nameInput.set_textColor(11184810);
-	};
-	this.chatInput = new h2d_TextInput(Assets.fontLarge);
-	this.chatInput.set_text("Click to chat");
-	this.chatInput.set_textColor(11184810);
-	this.addChild(this.chatInput);
-	this.chatInput.onFocus = function(_) {
-		_gthis.chatInput.set_textColor(16777215);
-	};
-	this.chatInput.onFocusLost = function(_) {
-		_gthis.chatInput.set_textColor(11184810);
-	};
-	this.texts = new h2d_Flow(this);
-	this.texts.set_layout(h2d_FlowLayout.Vertical);
-	this.texts.set_verticalAlign(h2d_FlowAlign.Top);
-	this.texts.set_verticalSpacing(5);
-	this.texts.set_horizontalAlign(h2d_FlowAlign.Left);
-	this.texts.set_padding(10);
-	this.set_backgroundTile(h2d_Tile.fromColor(2236962));
-	var outline = new h2d_filter_Outline();
-	outline.pass.color = 9849600;
-	outline.pass.size = 2;
-	this.set_filter(outline);
-};
-$hxClasses["ui.InfoBox"] = ui_InfoBox;
-ui_InfoBox.__name__ = "ui.InfoBox";
-ui_InfoBox.__super__ = h2d_Flow;
-ui_InfoBox.prototype = $extend(h2d_Flow.prototype,{
-	write: function(s) {
-		this.queue.push(s);
-		this.popQueue();
-	}
-	,sendChat: function() {
-		client_FaeranClient.ME.room.send("GlobalChat","" + this.nameInput.text + ":\n " + this.chatInput.text);
-	}
-	,popQueue: function() {
-		if(!this.writing && this.queue.length > 0) {
-			this.writing = true;
-			this.s = this.queue[0];
-			HxOverrides.remove(this.queue,this.s);
-			var t = new h2d_Text(Assets.fontMedium);
-			t.set_textColor(47872);
-			t.set_textAlign(h2d_Align.Left);
-			if(this.children.length > 15) {
-				var _this = this.children[this.children.length - 1];
-				if(_this != null && _this.parent != null) {
-					_this.parent.removeChild(_this);
-				}
-			}
-			this.texts.addChildAt(t,0);
-			this.writePortion(0,t);
-		}
-	}
-	,writePortion: function(i,t) {
-		var _gthis = this;
-		if(i < this.s.length) {
-			Main.ME.delayer.addMs("infobox",function() {
-				t.set_text(t.text + _gthis.s.charAt(i));
-				_gthis.writePortion(i + 1,t);
-			},35);
-		} else {
-			this.writing = false;
-			this.popQueue();
-		}
-	}
-	,__class__: ui_InfoBox
-});
 var ui_Window = function() {
 	dn_Process.call(this,Game.ME);
 	this.createRootInLayers(Game.ME.root,Const.DP_UI);
 	this.root.set_filter(new h2d_filter_ColorMatrix());
 	this.win = new h2d_Flow(this.root);
-	this.win.set_backgroundTile(h2d_Tile.fromColor(16777215,32,32));
 	this.win.set_borderWidth(7);
 	this.win.set_borderHeight(7);
 	this.win.set_layout(h2d_FlowLayout.Vertical);
 	this.win.set_verticalSpacing(2);
+	this.win.set_backgroundTile(h2d_Tile.fromColor(2236962));
+	var outline = new h2d_filter_Outline();
+	outline.pass.color = 9849600;
+	outline.pass.size = 2;
+	this.win.set_filter(outline);
 	dn_Process.resizeAll();
 };
 $hxClasses["ui.Window"] = ui_Window;
@@ -50245,6 +50606,239 @@ ui_Window.prototype = $extend(dn_Process.prototype,{
 		}
 	}
 	,__class__: ui_Window
+});
+var player_Lobby = function() {
+	ui_Window.call(this);
+	player_Lobby.ME = this;
+	this.win.set_minHeight(this.win.set_maxHeight(Const.VIEWPORT_HEIGHT * .18));
+	this.win.set_minWidth(this.win.set_maxWidth(Const.VIEWPORT_WIDTH * .145));
+	var _this = this.win;
+	_this.posChanged = true;
+	_this.x = Const.VIEWPORT_WIDTH * .85;
+	_this.posChanged = true;
+	_this.y = Const.VIEWPORT_HEIGHT * .3;
+	this.playersFlow = new h2d_Flow(this.win);
+	this.playersFlow.set_layout(h2d_FlowLayout.Vertical);
+};
+$hxClasses["player.Lobby"] = player_Lobby;
+player_Lobby.__name__ = "player.Lobby";
+player_Lobby.__super__ = ui_Window;
+player_Lobby.prototype = $extend(ui_Window.prototype,{
+	setPlayers: function(arr) {
+		this.players = arr;
+		this.playersFlow.removeChildren();
+		var _g = 0;
+		var _g1 = this.players;
+		while(_g < _g1.length) {
+			var p = _g1[_g];
+			++_g;
+			var t = new h2d_Text(Assets.fontMedium,this.playersFlow);
+			t.set_text(p.name);
+			t.set_textColor(p.color);
+		}
+	}
+	,__class__: player_Lobby
+});
+var ui_Console = function(f,p) {
+	var _gthis = this;
+	h2d_Console.call(this,f,p);
+	this.posChanged = true;
+	this.scaleX *= 2;
+	this.posChanged = true;
+	this.scaleY *= 2;
+	ui_Console.ME = this;
+	h2d_Console.HIDE_LOG_TIMEOUT = 30;
+	dn_Lib.redirectTracesToH2dConsole(this);
+	this.flags = new haxe_ds_StringMap();
+	this.addCommand("set",null,[{ name : "k", t : h2d_ConsoleArg.AString}],function(k) {
+		_gthis.setFlag(k,true);
+		_gthis.log("+ " + k.toLowerCase(),8453888);
+	});
+	this.addCommand("unset",null,[{ name : "k", t : h2d_ConsoleArg.AString, opt : true}],function(k) {
+		if(k == null) {
+			_gthis.log("Reset all.",16711680);
+			var h = _gthis.flags.h;
+			var k_h = h;
+			var k_keys = Object.keys(h);
+			var k_length = k_keys.length;
+			var k_current = 0;
+			while(k_current < k_length) {
+				var k1 = k_keys[k_current++];
+				_gthis.setFlag(k1,false);
+			}
+		} else {
+			_gthis.log("- " + k,16744448);
+			_gthis.setFlag(k,false);
+		}
+	});
+	this.addCommand("list",null,[],function() {
+		var h = _gthis.flags.h;
+		var k_h = h;
+		var k_keys = Object.keys(h);
+		var k_length = k_keys.length;
+		var k_current = 0;
+		while(k_current < k_length) {
+			var k = k_keys[k_current++];
+			_gthis.log(k,8453888);
+		}
+	});
+	this.addAlias("+","set");
+	this.addAlias("-","unset");
+};
+$hxClasses["ui.Console"] = ui_Console;
+ui_Console.__name__ = "ui.Console";
+ui_Console.__super__ = h2d_Console;
+ui_Console.prototype = $extend(h2d_Console.prototype,{
+	handleCommand: function(command) {
+		var flagReg_r = new RegExp("[/ \t]*\\+[ \t]*([\\w]+)","g".split("u").join(""));
+		h2d_Console.prototype.handleCommand.call(this,command.replace(flagReg_r,"/+ $1"));
+	}
+	,setFlag: function(k,v) {
+		k = k.toLowerCase();
+		var hadBefore = this.hasFlag(k);
+		if(v) {
+			this.flags.h[k] = v;
+		} else {
+			var _this = this.flags;
+			if(Object.prototype.hasOwnProperty.call(_this.h,k)) {
+				delete(_this.h[k]);
+			}
+		}
+		if(v && !hadBefore || !v && hadBefore) {
+			this.onFlagChange(k,v);
+		}
+		return v;
+	}
+	,hasFlag: function(k) {
+		return this.flags.h[k.toLowerCase()] == true;
+	}
+	,onFlagChange: function(k,v) {
+	}
+	,__class__: ui_Console
+});
+var ui_Hud = function() {
+	this.invalidated = true;
+	dn_Process.call(this,Game.ME);
+	this.createRootInLayers(Game.ME.root,Const.DP_UI);
+	this.root.set_filter(new h2d_filter_ColorMatrix());
+	this.flow = new h2d_Flow(this.root);
+};
+$hxClasses["ui.Hud"] = ui_Hud;
+ui_Hud.__name__ = "ui.Hud";
+ui_Hud.__super__ = dn_Process;
+ui_Hud.prototype = $extend(dn_Process.prototype,{
+	onResize: function() {
+		dn_Process.prototype.onResize.call(this);
+		var _this = this.root;
+		var v = Const.UI_SCALE;
+		_this.posChanged = true;
+		_this.scaleX = v;
+		_this.posChanged = true;
+		_this.scaleY = v;
+	}
+	,render: function() {
+	}
+	,postUpdate: function() {
+		dn_Process.prototype.postUpdate.call(this);
+		if(this.invalidated) {
+			this.invalidated = false;
+			this.render();
+		}
+	}
+	,__class__: ui_Hud
+});
+var ui_InfoBox = function() {
+	this.writing = false;
+	this.s = "";
+	this.queue = [];
+	this.playerColor = 11184810;
+	var _gthis = this;
+	h2d_Flow.call(this);
+	ui_InfoBox.ME = this;
+	Game.ME.scroller.addChildAt(this,Const.DP_UI);
+	this.set_minHeight(this.set_maxHeight(Const.VIEWPORT_HEIGHT * .495));
+	this.set_minWidth(this.set_maxWidth(Const.VIEWPORT_WIDTH * .145));
+	this.posChanged = true;
+	this.x = Const.VIEWPORT_WIDTH * .85;
+	this.posChanged = true;
+	this.y = Const.VIEWPORT_HEIGHT * .5;
+	this.set_layout(h2d_FlowLayout.Vertical);
+	this.set_verticalAlign(h2d_FlowAlign.Top);
+	this.set_verticalSpacing(10);
+	this.nameInput = new h2d_TextInput(Assets.fontMedium);
+	this.nameInput.set_text("Name");
+	this.nameInput.set_textColor(11184810);
+	this.addChild(this.nameInput);
+	this.chatInput = new h2d_TextInput(Assets.fontLarge);
+	this.chatInput.set_text("Click to chat");
+	this.chatInput.set_textColor(11184810);
+	this.addChild(this.chatInput);
+	this.chatInput.onFocus = function(_) {
+		_gthis.chatInput.set_textColor(16777215);
+	};
+	this.chatInput.onFocusLost = function(_) {
+		_gthis.chatInput.set_textColor(11184810);
+	};
+	this.texts = new h2d_Flow(this);
+	this.texts.set_layout(h2d_FlowLayout.Vertical);
+	this.texts.set_verticalAlign(h2d_FlowAlign.Top);
+	this.texts.set_verticalSpacing(5);
+	this.texts.set_horizontalAlign(h2d_FlowAlign.Left);
+	this.texts.set_padding(10);
+	this.set_backgroundTile(h2d_Tile.fromColor(2236962));
+	var outline = new h2d_filter_Outline();
+	outline.pass.color = 9849600;
+	outline.pass.size = 2;
+	this.set_filter(outline);
+};
+$hxClasses["ui.InfoBox"] = ui_InfoBox;
+ui_InfoBox.__name__ = "ui.InfoBox";
+ui_InfoBox.__super__ = h2d_Flow;
+ui_InfoBox.prototype = $extend(h2d_Flow.prototype,{
+	write: function(s,color) {
+		if(color == null) {
+			color = 47872;
+		}
+		this.t = new h2d_Text(Assets.fontMedium);
+		this.t.set_text(s);
+		this.t.set_textColor(this.playerColor);
+		this.t.set_textAlign(h2d_Align.Left);
+		this.queue.push(this.t);
+		this.popQueue();
+	}
+	,sendChat: function() {
+		client_FaeranClient.ME.send("GlobalChat",this.chatInput.text);
+	}
+	,popQueue: function() {
+		if(!this.writing && this.queue.length > 0) {
+			this.writing = true;
+			this.t = this.queue[0];
+			HxOverrides.remove(this.queue,this.t);
+			this.s = this.t.text;
+			this.t.set_text("");
+			if(this.children.length > 15) {
+				var _this = this.children[this.children.length - 1];
+				if(_this != null && _this.parent != null) {
+					_this.parent.removeChild(_this);
+				}
+			}
+			this.texts.addChildAt(this.t,0);
+			this.writePortion(0,this.t);
+		}
+	}
+	,writePortion: function(i,t) {
+		var _gthis = this;
+		if(i < this.s.length) {
+			Main.ME.delayer.addMs("infobox",function() {
+				t.set_text(t.text + _gthis.s.charAt(i));
+				_gthis.writePortion(i + 1,t);
+			},35);
+		} else {
+			this.writing = false;
+			this.popQueue();
+		}
+	}
+	,__class__: ui_InfoBox
 });
 var ui_Modal = function() {
 	ui_Window.call(this);
@@ -50601,7 +51195,6 @@ Xml.Comment = 3;
 Xml.DocType = 4;
 Xml.ProcessingInstruction = 5;
 Xml.Document = 6;
-var client_FaeranClient_MessageDelivery = { CHAT : "Chat", SET_NAME : "SetName"};
 io_colyseus_serializer_schema_Schema.decoder = new io_colyseus_serializer_schema_Decoder();
 dn_Cooldown.__meta__ = { obj : { indexes : ["test","emitterLife","emitterTick"]}};
 dn_data_GetText.CONTEXT = "||";
@@ -50758,7 +51351,7 @@ hxd_Timer.currentDT = 1 / hxd_Timer.wantedFPS;
 hxd_System.setCursor = hxd_System.setNativeCursor;
 hxd_System.loopInit = false;
 hxd_fs_EmbedFileSystem.invalidChars = new EReg("[^A-Za-z0-9_]","g");
-hxd_res_Resource.LIVE_UPDATE = false;
+hxd_res_Resource.LIVE_UPDATE = true;
 hxd_res_Image.DEFAULT_FILTER = h3d_mat_Filter.Linear;
 hxd_res_Image.DEFAULT_ASYNC = false;
 hxd_res_Image.ENABLE_AUTO_WATCH = true;
@@ -50859,3 +51452,5 @@ ui_Modal.COUNT = 0;
 	haxe_EntryPoint.run();
 }
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
+
+//# sourceMappingURL=client.js.map
