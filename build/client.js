@@ -4732,11 +4732,14 @@ var client_FaeranClient = function() {
 	var client = new io_colyseus_Client("wss://faeran-server-qmjhvcvdwa-uc.a.run.app");
 	client.joinOrCreate_client_schema_FaeranState("friedman",new haxe_ds_StringMap(),client_schema_FaeranState,function(err,room) {
 		if(err != null) {
-			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 21, className : "client.FaeranClient", methodName : "new"});
+			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 26, className : "client.FaeranClient", methodName : "new"});
 			return;
 		}
-		room.onMessage("Chat",function(msg) {
+		room.onMessage(client_FaeranClient_MessageDelivery.CHAT,function(msg) {
 			ui_InfoBox.ME.write(msg);
+		});
+		room.onMessage(client_FaeranClient_MessageDelivery.SET_NAME,function(name) {
+			ui_InfoBox.ME.nameInput.set_text(name);
 		});
 		_gthis.room = room;
 	});
@@ -50598,6 +50601,7 @@ Xml.Comment = 3;
 Xml.DocType = 4;
 Xml.ProcessingInstruction = 5;
 Xml.Document = 6;
+var client_FaeranClient_MessageDelivery = { CHAT : "Chat", SET_NAME : "SetName"};
 io_colyseus_serializer_schema_Schema.decoder = new io_colyseus_serializer_schema_Decoder();
 dn_Cooldown.__meta__ = { obj : { indexes : ["test","emitterLife","emitterTick"]}};
 dn_data_GetText.CONTEXT = "||";
