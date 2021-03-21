@@ -98,6 +98,87 @@
 					"dims": "",
 					"title": "Stir up the Peasants",
 					"description": "If your H is 5 greater than your opponent's H, disable up to 3 opposing Village Labor or Work Crew cards for 1. Diable these cards for 1 additional turn for every 5 above the first"
+				},
+				{
+					"alias": "gate",
+					"type": 4,
+					"labor_cost": 3,
+					"money_cost": 0,
+					"dims": "",
+					"title": "Gate",
+					"description": ""
+				},
+				{
+					"alias": "work_crew",
+					"type": 2,
+					"labor_cost": 0,
+					"money_cost": 4,
+					"dims": "1x1",
+					"title": "Work Crew",
+					"description": "+2 L"
+				},
+				{
+					"alias": "building_team",
+					"type": 2,
+					"labor_cost": 0,
+					"money_cost": 6,
+					"dims": "1x1",
+					"title": "Building Team",
+					"description": "+3 L"
+				},
+				{
+					"alias": "shop_keeper",
+					"type": 2,
+					"labor_cost": 0,
+					"money_cost": 3,
+					"dims": "1x1",
+					"title": "Shopkeeper",
+					"description": "+2 M"
+				},
+				{
+					"alias": "merchant",
+					"type": 2,
+					"labor_cost": 0,
+					"money_cost": 5,
+					"dims": "1x1",
+					"title": "Merchant",
+					"description": "+3 M"
+				},
+				{
+					"alias": "repair",
+					"type": 4,
+					"labor_cost": 2,
+					"money_cost": 0,
+					"dims": "",
+					"title": "Repair",
+					"description": ""
+				},
+				{
+					"alias": "run_them_out_of_town",
+					"type": 4,
+					"labor_cost": 3,
+					"money_cost": 4,
+					"dims": "",
+					"title": "Run Them Out of Town",
+					"description": "Should be 3L OR 4M"
+				},
+				{
+					"alias": "hanging_gardens",
+					"type": 4,
+					"labor_cost": 8,
+					"money_cost": 0,
+					"dims": "",
+					"title": "Hanging Gardens",
+					"description": ""
+				},
+				{
+					"alias": "palace",
+					"type": 4,
+					"labor_cost": 8,
+					"money_cost": 0,
+					"dims": "",
+					"title": "Palace",
+					"description": ""
 				}
 			],
 			"separators": [],
