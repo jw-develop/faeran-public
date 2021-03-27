@@ -3324,7 +3324,7 @@ var client_FaeranClient = function() {
 	var client = new io_colyseus_Client("wss://faeran-server-qmjhvcvdwa-uc.a.run.app");
 	client.joinOrCreate_client_schema_FaeranState("friedman",new haxe_ds_StringMap(),client_schema_FaeranState,function(err,room) {
 		if(err != null) {
-			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 87, className : "client.FaeranClient", methodName : "new"});
+			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 85, className : "client.FaeranClient", methodName : "new"});
 			return;
 		}
 		_gthis.room = room;
@@ -3345,12 +3345,10 @@ function client_FaeranClient_addMessageHandlers(room) {
 	});
 	room.onMessage("IdentityInit",function(p) {
 		new player_Identity(p);
-		haxe_Log.trace(room.get_state().cells.get_length(),{ fileName : "src/client/FaeranClient.hx", lineNumber : 28, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
 		var c = room.get_state().cells.iterator();
 		while(c.hasNext()) {
 			var c1 = c.next();
 			field_Field.ME.drawCellFromServer(c1);
-			haxe_Log.trace("fetching " + c1.x + "," + c1.y,{ fileName : "src/client/FaeranClient.hx", lineNumber : 31, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
 		}
 	});
 	room.onMessage("Chat",function(obj) {
@@ -3359,7 +3357,7 @@ function client_FaeranClient_addMessageHandlers(room) {
 			var color = p != null ? p.color : 13421772;
 			zone_InfoBox.ME.write(obj.msg,color);
 		} else {
-			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 42, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 40, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
 		}
 	});
 	room.get_state().cells.onAdd = function(cell,key) {
@@ -7894,7 +7892,7 @@ var field_Field = function() {
 	this.x = Const.VIEWPORT_WIDTH * .15;
 	this.posChanged = true;
 	this.y = Const.VIEWPORT_HEIGHT * .1;
-	this.set_layout(h2d_FlowLayout.Vertical);
+	this.set_layout(h2d_FlowLayout.Horizontal);
 	this.set_multiline(true);
 	this.set_verticalAlign(h2d_FlowAlign.Bottom);
 	this.fillGrid();
@@ -7925,45 +7923,45 @@ field_Field.prototype = $extend(h2d_Flow.prototype,{
 				} else {
 					state = field_State.ACTIVE;
 				}
-				row.push(new field_FieldCell(this,cellWidth,cellHeight,state,y,x));
+				row.push(new field_FieldCell(this,cellWidth,cellHeight,state,x,y));
 			}
 		}
 	}
-	,sendCellToServer: function(x,rawY,cardId,isNorth) {
-		var modY = (isNorth ? rawY : 11 - rawY) | 0;
-		var newCell = { x : x, y : modY, isNorth : isNorth, cardId : cardId};
+	,sendCellToServer: function(rawX,rawY,cardId,isNorth) {
+		var modX = player_Identity.ME.isNorth ? rawX : 11 - rawX;
+		var modY = player_Identity.ME.isNorth ? rawY : 11 - rawY;
+		var newCell = { x : modX, y : modY, isNorth : isNorth, cardId : cardId};
 		client_FaeranClient.ME.room.send("CellSet",newCell);
 	}
 	,drawCellFromServer: function(cell) {
-		var modY = (player_Identity.ME.isNorth ? cell.y : 11 - cell.y) | 0;
-		this.grid[cell.x][modY].img.set_tile(Assets.getCardTile(cell.cardId));
+		var modX = player_Identity.ME.isNorth ? cell.x : 11 - cell.x;
+		var modY = player_Identity.ME.isNorth ? cell.y : 11 - cell.y;
+		this.grid[modY][modX].img.set_tile(Assets.getCardTile(cell.cardId));
 	}
 	,initializeForServer: function(state) {
 		var cells = client_FaeranClient.ME.room.get_state().cells;
-		var side = false;
-		this.sendCellToServer(3,3,"farmer",side);
-		this.sendCellToServer(4,3,"farmer",side);
-		this.sendCellToServer(5,3,"farmer",side);
-		this.sendCellToServer(6,3,"farmer",side);
-		this.sendCellToServer(7,3,"farmer",side);
-		this.sendCellToServer(8,3,"farmer",side);
-		this.sendCellToServer(4,2,"village_labor",side);
-		this.sendCellToServer(5,2,"village_labor",side);
-		this.sendCellToServer(6,2,"village_labor",side);
-		this.sendCellToServer(7,2,"village_labor",side);
-		var side = true;
-		this.sendCellToServer(3,3,"farmer",side);
-		this.sendCellToServer(4,3,"farmer",side);
-		this.sendCellToServer(5,3,"farmer",side);
-		this.sendCellToServer(6,3,"farmer",side);
-		this.sendCellToServer(7,3,"farmer",side);
-		this.sendCellToServer(8,3,"farmer",side);
-		this.sendCellToServer(4,2,"village_labor",side);
-		this.sendCellToServer(5,2,"village_labor",side);
-		this.sendCellToServer(6,2,"village_labor",side);
-		this.sendCellToServer(7,2,"village_labor",side);
-		this.sendCellToServer(5,1,"hanging_gardens",true);
-		this.sendCellToServer(6,1,"palace",true);
+		this.sendCellToServer(3,3,"farmer",true);
+		this.sendCellToServer(3,8,"farmer",false);
+		this.sendCellToServer(4,3,"farmer",true);
+		this.sendCellToServer(4,8,"farmer",false);
+		this.sendCellToServer(5,3,"farmer",true);
+		this.sendCellToServer(5,8,"farmer",false);
+		this.sendCellToServer(6,3,"farmer",true);
+		this.sendCellToServer(6,8,"farmer",false);
+		this.sendCellToServer(7,3,"farmer",true);
+		this.sendCellToServer(7,8,"farmer",false);
+		this.sendCellToServer(8,3,"farmer",true);
+		this.sendCellToServer(8,8,"farmer",false);
+		this.sendCellToServer(4,2,"village_labor",true);
+		this.sendCellToServer(4,9,"village_labor",false);
+		this.sendCellToServer(5,2,"village_labor",true);
+		this.sendCellToServer(5,9,"village_labor",false);
+		this.sendCellToServer(6,2,"village_labor",true);
+		this.sendCellToServer(6,9,"village_labor",false);
+		this.sendCellToServer(7,2,"village_labor",true);
+		this.sendCellToServer(7,9,"village_labor",false);
+		this.sendCellToServer(5,10,"hanging_gardens",false);
+		this.sendCellToServer(6,10,"palace",false);
 	}
 	,__class__: field_Field
 });
@@ -50486,7 +50484,7 @@ zone_Hand.prototype = $extend(h2d_Flow.prototype,{
 	}
 	,playToField: function(c) {
 		if(this.selectedCard != null) {
-			client_FaeranClient.ME.send("CellSet",{ x : c.gridPos.x, y : c.gridPos.y, isNorth : player_Identity.ME.isNorth, cardId : this.selectedCard.info.alias});
+			field_Field.ME.sendCellToServer(c.gridPos.x,c.gridPos.y,this.selectedCard.info.alias,player_Identity.ME.isNorth);
 			client_FaeranClient.ME.send("GlobalChat","Played " + this.selectedCard.info.title + " to the field.");
 			zone_Discard.ME.discard(this.selectedCard);
 			var _this = this.selectedCard;
