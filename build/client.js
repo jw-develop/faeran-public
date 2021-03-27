@@ -3324,43 +3324,11 @@ var client_FaeranClient = function() {
 	var client = new io_colyseus_Client("wss://faeran-server-qmjhvcvdwa-uc.a.run.app");
 	client.joinOrCreate_client_schema_FaeranState("friedman",new haxe_ds_StringMap(),client_schema_FaeranState,function(err,room) {
 		if(err != null) {
-			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 37, className : "client.FaeranClient", methodName : "new"});
+			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 84, className : "client.FaeranClient", methodName : "new"});
 			return;
 		}
 		_gthis.room = room;
-		room.onMessage("Chat",function(obj) {
-			if(obj.msg != null) {
-				var p = room.get_state().players.items.get(obj.clientId);
-				var color = p != null ? p.color : 13421772;
-				zone_InfoBox.ME.write(obj.msg,color);
-			} else {
-				haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 47, className : "client.FaeranClient", methodName : "new"});
-			}
-		});
-		room.onMessage("SetIdentity",function(p) {
-			new player_Identity(p);
-		});
-		room.onMessage("Init",function(_) {
-			field_Field.ME.initialize();
-		});
-		room.get_state().players.onAdd = function(player,key) {
-			var list = [];
-			var p = room.get_state().players.iterator();
-			while(p.hasNext()) {
-				var p1 = p.next();
-				list.push(p1);
-			}
-			zone_Lobby.ME.setPlayers(list);
-		};
-		room.get_state().players.onRemove = function(player,key) {
-			var list = [];
-			var p = room.get_state().players.iterator();
-			while(p.hasNext()) {
-				var p1 = p.next();
-				list.push(p1);
-			}
-			zone_Lobby.ME.setPlayers(list);
-		};
+		client_FaeranClient_addMessageHandlers(room);
 	});
 };
 $hxClasses["client.FaeranClient"] = client_FaeranClient;
@@ -3371,6 +3339,46 @@ client_FaeranClient.prototype = {
 	}
 	,__class__: client_FaeranClient
 };
+function client_FaeranClient_addMessageHandlers(room) {
+	room.onMessage("RoomInit",function(_) {
+		field_Field.ME.initializeForServer(room.get_state());
+	});
+	room.onMessage("IdentityInit",function(p) {
+		new player_Identity(p);
+	});
+	room.onMessage("Chat",function(obj) {
+		if(obj.msg != null) {
+			var p = room.get_state().players.items.get(obj.sentFromId);
+			var color = p != null ? p.color : 13421772;
+			zone_InfoBox.ME.write(obj.msg,color);
+			haxe_Log.trace(room.get_state().cells.get_length(),{ fileName : "src/client/FaeranClient.hx", lineNumber : 36, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+			haxe_Log.trace(room.get_state().initialized,{ fileName : "src/client/FaeranClient.hx", lineNumber : 37, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+		} else {
+			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 39, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+		}
+	});
+	room.get_state().cells.onAdd = function(cell,key) {
+		field_Field.ME.setCell(cell);
+	};
+	room.get_state().players.onAdd = function(player,key) {
+		var list = [];
+		var p = room.get_state().players.iterator();
+		while(p.hasNext()) {
+			var p1 = p.next();
+			list.push(p1);
+		}
+		zone_Lobby.ME.setPlayers(list);
+	};
+	room.get_state().players.onRemove = function(player,key) {
+		var list = [];
+		var p = room.get_state().players.iterator();
+		while(p.hasNext()) {
+			var p1 = p.next();
+			list.push(p1);
+		}
+		zone_Lobby.ME.setPlayers(list);
+	};
+}
 var io_colyseus_serializer_schema_types_IRef = function() { };
 $hxClasses["io.colyseus.serializer.schema.types.IRef"] = io_colyseus_serializer_schema_types_IRef;
 io_colyseus_serializer_schema_types_IRef.__name__ = "io.colyseus.serializer.schema.types.IRef";
@@ -3800,6 +3808,8 @@ io_colyseus_serializer_schema_Schema.prototype = {
 	,__class__: io_colyseus_serializer_schema_Schema
 };
 var client_schema_FaeranState = function() {
+	this.cell = new client_schema_PlayerCell();
+	this.initialized = false;
 	this.cells = new io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$PlayerCell();
 	this.players = new io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player();
 	io_colyseus_serializer_schema_Schema.call(this);
@@ -3809,6 +3819,11 @@ var client_schema_FaeranState = function() {
 	this._indexes.h[1] = "cells";
 	this._types.h[1] = "map";
 	this._childTypes.h[1] = client_schema_PlayerCell;
+	this._indexes.h[2] = "initialized";
+	this._types.h[2] = "boolean";
+	this._indexes.h[3] = "cell";
+	this._types.h[3] = "ref";
+	this._childTypes.h[3] = client_schema_PlayerCell;
 };
 $hxClasses["client.schema.FaeranState"] = client_schema_FaeranState;
 client_schema_FaeranState.__name__ = "client.schema.FaeranState";
@@ -3840,17 +3855,17 @@ client_schema_Player.prototype = $extend(io_colyseus_serializer_schema_Schema.pr
 var client_schema_PlayerCell = function() {
 	this.y = 0;
 	this.x = 0;
-	this.northOrSouth = 0;
+	this.isNorth = false;
 	this.cardId = "";
 	io_colyseus_serializer_schema_Schema.call(this);
 	this._indexes.h[0] = "cardId";
 	this._types.h[0] = "string";
-	this._indexes.h[1] = "northOrSouth";
-	this._types.h[1] = "number";
+	this._indexes.h[1] = "isNorth";
+	this._types.h[1] = "boolean";
 	this._indexes.h[2] = "x";
-	this._types.h[2] = "number";
+	this._types.h[2] = "int32";
 	this._indexes.h[3] = "y";
-	this._types.h[3] = "number";
+	this._types.h[3] = "int32";
 };
 $hxClasses["client.schema.PlayerCell"] = client_schema_PlayerCell;
 client_schema_PlayerCell.__name__ = "client.schema.PlayerCell";
@@ -7909,46 +7924,46 @@ field_Field.prototype = $extend(h2d_Flow.prototype,{
 			}
 		}
 	}
-	,createCell: function(x,rawY,cardId,northOrSouth) {
-		var modY = northOrSouth == "south" ? 11 - rawY : rawY;
-		this.grid[x][modY].img.set_tile(Assets.getCardTile(cardId));
-		var newCell = new client_schema_PlayerCell();
-		newCell.x = x;
-		newCell.y = modY;
-		newCell.cardId = cardId;
-		newCell.northOrSouth = northOrSouth;
-		if(northOrSouth == "south") {
-			client_FaeranClient.ME.room.get_state().cells.items.set("" + x + "," + modY,newCell);
-		} else {
-			client_FaeranClient.ME.room.get_state().cells.items.set("" + x + "," + modY,newCell);
-		}
+	,setCell: function(cell) {
+		var modY = (player_Identity.ME.isNorth ? cell.y : 11 - cell.y) | 0;
+		this.grid[cell.x][modY].img.set_tile(Assets.getCardTile(cell.cardId));
 	}
-	,initialize: function() {
-		var room = client_FaeranClient.ME.room;
-		var dir = "south";
-		this.createCell(3,3,"farmer",dir);
-		this.createCell(4,3,"farmer",dir);
-		this.createCell(5,3,"farmer",dir);
-		this.createCell(6,3,"farmer",dir);
-		this.createCell(7,3,"farmer",dir);
-		this.createCell(8,3,"farmer",dir);
-		this.createCell(4,2,"village_labor",dir);
-		this.createCell(5,2,"village_labor",dir);
-		this.createCell(6,2,"village_labor",dir);
-		this.createCell(7,2,"village_labor",dir);
-		var dir = "north";
-		this.createCell(3,3,"farmer",dir);
-		this.createCell(4,3,"farmer",dir);
-		this.createCell(5,3,"farmer",dir);
-		this.createCell(6,3,"farmer",dir);
-		this.createCell(7,3,"farmer",dir);
-		this.createCell(8,3,"farmer",dir);
-		this.createCell(4,2,"village_labor",dir);
-		this.createCell(5,2,"village_labor",dir);
-		this.createCell(6,2,"village_labor",dir);
-		this.createCell(7,2,"village_labor",dir);
-		this.createCell(5,1,"hanging_gardens","south");
-		this.createCell(6,1,"palace","south");
+	,initializeForServer: function(state) {
+		var _gthis = this;
+		var cells = client_FaeranClient.ME.room.get_state().cells;
+		var createCell = function(x,rawY,cardId,isNorth) {
+			var newCell = new client_schema_PlayerCell();
+			var modY = (isNorth ? rawY : 11 - rawY) | 0;
+			newCell.x = x;
+			newCell.y = modY;
+			newCell.cardId = cardId;
+			newCell.isNorth = isNorth;
+			cells.invokeOnAdd(newCell,"" + x + "," + _gthis.y);
+		};
+		var side = false;
+		createCell(3,3,"farmer",side);
+		createCell(4,3,"farmer",side);
+		createCell(5,3,"farmer",side);
+		createCell(6,3,"farmer",side);
+		createCell(7,3,"farmer",side);
+		createCell(8,3,"farmer",side);
+		createCell(4,2,"village_labor",side);
+		createCell(5,2,"village_labor",side);
+		createCell(6,2,"village_labor",side);
+		createCell(7,2,"village_labor",side);
+		var side = true;
+		createCell(3,3,"farmer",side);
+		createCell(4,3,"farmer",side);
+		createCell(5,3,"farmer",side);
+		createCell(6,3,"farmer",side);
+		createCell(7,3,"farmer",side);
+		createCell(8,3,"farmer",side);
+		createCell(4,2,"village_labor",side);
+		createCell(5,2,"village_labor",side);
+		createCell(6,2,"village_labor",side);
+		createCell(7,2,"village_labor",side);
+		createCell(5,1,"hanging_gardens",false);
+		createCell(6,1,"palace",false);
 	}
 	,__class__: field_Field
 });
@@ -50067,6 +50082,7 @@ org_msgpack_Encoder.prototype = {
 var player_Identity = function(p) {
 	player_Identity.ME = this;
 	this.p = p;
+	this.isNorth = p.playerIndex % 2 == 1;
 	zone_InfoBox.ME.nameInput.set_text(p.name);
 	zone_InfoBox.ME.nameInput.set_textColor(p.color);
 	zone_InfoBox.ME.playerColor = p.color;
