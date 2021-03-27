@@ -3324,7 +3324,7 @@ var client_FaeranClient = function() {
 	var client = new io_colyseus_Client("wss://faeran-server-qmjhvcvdwa-uc.a.run.app");
 	client.joinOrCreate_client_schema_FaeranState("friedman",new haxe_ds_StringMap(),client_schema_FaeranState,function(err,room) {
 		if(err != null) {
-			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 84, className : "client.FaeranClient", methodName : "new"});
+			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 87, className : "client.FaeranClient", methodName : "new"});
 			return;
 		}
 		_gthis.room = room;
@@ -3345,20 +3345,25 @@ function client_FaeranClient_addMessageHandlers(room) {
 	});
 	room.onMessage("IdentityInit",function(p) {
 		new player_Identity(p);
+		haxe_Log.trace(room.get_state().cells.get_length(),{ fileName : "src/client/FaeranClient.hx", lineNumber : 28, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+		var c = room.get_state().cells.iterator();
+		while(c.hasNext()) {
+			var c1 = c.next();
+			field_Field.ME.drawCellFromServer(c1);
+			haxe_Log.trace("fetching " + c1.x + "," + c1.y,{ fileName : "src/client/FaeranClient.hx", lineNumber : 31, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+		}
 	});
 	room.onMessage("Chat",function(obj) {
 		if(obj.msg != null) {
 			var p = room.get_state().players.items.get(obj.sentFromId);
 			var color = p != null ? p.color : 13421772;
 			zone_InfoBox.ME.write(obj.msg,color);
-			haxe_Log.trace(room.get_state().cells.get_length(),{ fileName : "src/client/FaeranClient.hx", lineNumber : 36, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
-			haxe_Log.trace(room.get_state().initialized,{ fileName : "src/client/FaeranClient.hx", lineNumber : 37, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
 		} else {
-			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 39, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 42, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
 		}
 	});
 	room.get_state().cells.onAdd = function(cell,key) {
-		field_Field.ME.setCell(cell);
+		field_Field.ME.drawCellFromServer(cell);
 	};
 	room.get_state().players.onAdd = function(player,key) {
 		var list = [];
@@ -7920,50 +7925,45 @@ field_Field.prototype = $extend(h2d_Flow.prototype,{
 				} else {
 					state = field_State.ACTIVE;
 				}
-				row.push(new field_FieldCell(this,cellWidth,cellHeight,state));
+				row.push(new field_FieldCell(this,cellWidth,cellHeight,state,y,x));
 			}
 		}
 	}
-	,setCell: function(cell) {
+	,sendCellToServer: function(x,rawY,cardId,isNorth) {
+		var modY = (isNorth ? rawY : 11 - rawY) | 0;
+		var newCell = { x : x, y : modY, isNorth : isNorth, cardId : cardId};
+		client_FaeranClient.ME.room.send("CellSet",newCell);
+	}
+	,drawCellFromServer: function(cell) {
 		var modY = (player_Identity.ME.isNorth ? cell.y : 11 - cell.y) | 0;
 		this.grid[cell.x][modY].img.set_tile(Assets.getCardTile(cell.cardId));
 	}
 	,initializeForServer: function(state) {
-		var _gthis = this;
 		var cells = client_FaeranClient.ME.room.get_state().cells;
-		var createCell = function(x,rawY,cardId,isNorth) {
-			var newCell = new client_schema_PlayerCell();
-			var modY = (isNorth ? rawY : 11 - rawY) | 0;
-			newCell.x = x;
-			newCell.y = modY;
-			newCell.cardId = cardId;
-			newCell.isNorth = isNorth;
-			cells.invokeOnAdd(newCell,"" + x + "," + _gthis.y);
-		};
 		var side = false;
-		createCell(3,3,"farmer",side);
-		createCell(4,3,"farmer",side);
-		createCell(5,3,"farmer",side);
-		createCell(6,3,"farmer",side);
-		createCell(7,3,"farmer",side);
-		createCell(8,3,"farmer",side);
-		createCell(4,2,"village_labor",side);
-		createCell(5,2,"village_labor",side);
-		createCell(6,2,"village_labor",side);
-		createCell(7,2,"village_labor",side);
+		this.sendCellToServer(3,3,"farmer",side);
+		this.sendCellToServer(4,3,"farmer",side);
+		this.sendCellToServer(5,3,"farmer",side);
+		this.sendCellToServer(6,3,"farmer",side);
+		this.sendCellToServer(7,3,"farmer",side);
+		this.sendCellToServer(8,3,"farmer",side);
+		this.sendCellToServer(4,2,"village_labor",side);
+		this.sendCellToServer(5,2,"village_labor",side);
+		this.sendCellToServer(6,2,"village_labor",side);
+		this.sendCellToServer(7,2,"village_labor",side);
 		var side = true;
-		createCell(3,3,"farmer",side);
-		createCell(4,3,"farmer",side);
-		createCell(5,3,"farmer",side);
-		createCell(6,3,"farmer",side);
-		createCell(7,3,"farmer",side);
-		createCell(8,3,"farmer",side);
-		createCell(4,2,"village_labor",side);
-		createCell(5,2,"village_labor",side);
-		createCell(6,2,"village_labor",side);
-		createCell(7,2,"village_labor",side);
-		createCell(5,1,"hanging_gardens",false);
-		createCell(6,1,"palace",false);
+		this.sendCellToServer(3,3,"farmer",side);
+		this.sendCellToServer(4,3,"farmer",side);
+		this.sendCellToServer(5,3,"farmer",side);
+		this.sendCellToServer(6,3,"farmer",side);
+		this.sendCellToServer(7,3,"farmer",side);
+		this.sendCellToServer(8,3,"farmer",side);
+		this.sendCellToServer(4,2,"village_labor",side);
+		this.sendCellToServer(5,2,"village_labor",side);
+		this.sendCellToServer(6,2,"village_labor",side);
+		this.sendCellToServer(7,2,"village_labor",side);
+		this.sendCellToServer(5,1,"hanging_gardens",true);
+		this.sendCellToServer(6,1,"palace",true);
 	}
 	,__class__: field_Field
 });
@@ -7973,7 +7973,7 @@ var field_State = $hxEnums["field.State"] = { __ename__:true,__constructs__:null
 };
 field_State.__constructs__ = [field_State.INACTIVE,field_State.ACTIVE];
 field_State.__empty_constructs__ = [field_State.INACTIVE,field_State.ACTIVE];
-var field_FieldCell = function(field,w,h,state) {
+var field_FieldCell = function(field,w,h,state,x,y) {
 	h2d_Object.call(this,field);
 	this.state = state;
 	this.img = new h2d_Bitmap(Assets.field.toTile(),this);
@@ -7982,6 +7982,7 @@ var field_FieldCell = function(field,w,h,state) {
 	}
 	this.img.set_width(w);
 	this.img.set_height(h);
+	this.gridPos = { x : x, y : y};
 	this.configureInteractive();
 };
 $hxClasses["field.FieldCell"] = field_FieldCell;
@@ -50485,8 +50486,8 @@ zone_Hand.prototype = $extend(h2d_Flow.prototype,{
 	}
 	,playToField: function(c) {
 		if(this.selectedCard != null) {
-			c.img.set_tile(Assets.getCardTile(this.selectedCard.info.alias));
-			zone_InfoBox.ME.write("Played " + this.selectedCard.info.title + " to the field.");
+			client_FaeranClient.ME.send("CellSet",{ x : c.gridPos.x, y : c.gridPos.y, isNorth : player_Identity.ME.isNorth, cardId : this.selectedCard.info.alias});
+			client_FaeranClient.ME.send("GlobalChat","Played " + this.selectedCard.info.title + " to the field.");
 			zone_Discard.ME.discard(this.selectedCard);
 			var _this = this.selectedCard;
 			if(_this != null && _this.parent != null) {
