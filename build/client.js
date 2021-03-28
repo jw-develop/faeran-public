@@ -901,6 +901,7 @@ var Game = function() {
 	new zone_Lobby();
 	new client_FaeranClient();
 	new zone_LeftToDo();
+	new zone_OpponentHand();
 };
 $hxClasses["Game"] = Game;
 Game.__name__ = "Game";
@@ -2865,6 +2866,7 @@ card_Card.prototype = $extend(h2d_Object.prototype,{
 			_gthis.scaleY = 2;
 			_gthis.alpha = .8;
 			zone_Hand.ME.reflow();
+			client_FaeranClient.ME.send("PlayerHoverSet",{ index : _gthis.parent.getChildIndex(_gthis)});
 		};
 		this.interactive.onOut = function(e) {
 			if(!_gthis.selected) {
@@ -2900,7 +2902,10 @@ card_Card.prototype = $extend(h2d_Object.prototype,{
 			_gthis.visuals.set_filter(null);
 		};
 		this.interactive.onClick = function(e) {
-			zone_Discard.ME.discard(_gthis);
+			if(client_Turn.myTurn()) {
+				zone_InfoBox.ME.write("Bought \"" + _gthis.info.title + "\" from the supply, for free ...");
+				zone_Discard.ME.addToDiscard(_gthis);
+			}
 		};
 	}
 	,select: function() {
@@ -3326,7 +3331,7 @@ var client_FaeranClient = function() {
 	var client = new io_colyseus_Client("wss://faeran-server-qmjhvcvdwa-uc.a.run.app");
 	client.joinOrCreate_client_schema_FaeranState("friedman",new haxe_ds_StringMap(),client_schema_FaeranState,function(err,room) {
 		if(err != null) {
-			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 101, className : "client.FaeranClient", methodName : "new"});
+			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 107, className : "client.FaeranClient", methodName : "new"});
 			return;
 		}
 		_gthis.room = room;
@@ -3363,7 +3368,7 @@ function client_FaeranClient_addMessageHandlers(room) {
 			var color = obj.color != null ? obj.color : 13421772;
 			zone_InfoBox.ME.write(obj.msg,color);
 		} else {
-			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 42, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 43, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
 		}
 	});
 	room.onMessage("TurnSet",function(turn) {
@@ -3392,6 +3397,15 @@ function client_FaeranClient_addStateHandlers(state) {
 		}
 		zone_Lobby.ME.setPlayers(list);
 	};
+	var p = state.players.items.iterator();
+	while(p.hasNext()) {
+		var p1 = [p.next()];
+		p1[0].isHovering.onChange = (function(p) {
+			return function(hover,key) {
+				zone_OpponentHand.ME().setHover(p[0].isHovering);
+			};
+		})(p1);
+	}
 }
 var client_Turn = function() {
 	client_Turn.ME = this;
@@ -3409,6 +3423,8 @@ client_Turn.setTurn = function(t) {
 			zone_InfoBox.ME.write("It is your turn.",Const.SERVER_COLOR);
 		} else {
 			zone_InfoBox.ME.write("It is the opponent's turn.",Const.SERVER_COLOR);
+			zone_Hand.ME.discardAll();
+			zone_Hand.ME.drawUpToFive();
 		}
 	}
 };
@@ -3870,6 +3886,7 @@ client_schema_FaeranState.prototype = $extend(io_colyseus_serializer_schema_Sche
 	__class__: client_schema_FaeranState
 });
 var client_schema_Player = function() {
+	this.isHovering = 0;
 	this.playerIndex = 0;
 	this.color = 0;
 	this.name = "";
@@ -3883,6 +3900,8 @@ var client_schema_Player = function() {
 	this._types.h[2] = "number";
 	this._indexes.h[3] = "playerIndex";
 	this._types.h[3] = "number";
+	this._indexes.h[4] = "isHovering";
+	this._types.h[4] = "number";
 };
 $hxClasses["client.schema.Player"] = client_schema_Player;
 client_schema_Player.__name__ = "client.schema.Player";
@@ -50118,6 +50137,7 @@ var player_Identity = function(p) {
 	this.p = p;
 	this.isNorth = p.playerIndex % 2 == 1;
 	this.color = p.color;
+	this.clientId = p.clientId;
 	zone_InfoBox.ME.nameInput.set_text(p.name);
 	zone_InfoBox.ME.nameInput.set_textColor(p.color);
 	zone_InfoBox.ME.playerColor = p.color;
@@ -50479,7 +50499,7 @@ $hxClasses["zone.Discard"] = zone_Discard;
 zone_Discard.__name__ = "zone.Discard";
 zone_Discard.__super__ = h2d_Object;
 zone_Discard.prototype = $extend(h2d_Object.prototype,{
-	discard: function(card) {
+	addToDiscard: function(card) {
 		this.l.push(card.info.alias);
 		this.countText.set_text(Std.string(this.l.length));
 	}
@@ -50522,17 +50542,13 @@ zone_Hand.prototype = $extend(h2d_Flow.prototype,{
 		if(this.selectedCard != null) {
 			field_Field.ME.sendCellToServer(c.gridPos.x,c.gridPos.y,this.selectedCard.info.alias,player_Identity.ME.isNorth);
 			client_FaeranClient.ME.sendGlobalChat("Played " + this.selectedCard.info.title + " to the field.");
-			zone_Discard.ME.discard(this.selectedCard);
+			zone_Discard.ME.addToDiscard(this.selectedCard);
 			var _this = this.selectedCard;
 			if(_this != null && _this.parent != null) {
 				_this.parent.removeChild(_this);
 			}
 			this.cardCount--;
 			this.selectedCard = null;
-			if(this.cardCount <= 0) {
-				this.drawUpToFive();
-			}
-			client_Turn.nextTurn();
 		}
 	}
 	,drawUpToFive: function() {
@@ -50549,6 +50565,20 @@ zone_Hand.prototype = $extend(h2d_Flow.prototype,{
 			result[i] = js_Boot.__cast(_this[i] , card_Card);
 		}
 		return result;
+	}
+	,discardAll: function() {
+		var _g = 0;
+		var _g1 = this.cardsInHand();
+		while(_g < _g1.length) {
+			var c = _g1[_g];
+			++_g;
+			zone_Discard.ME.addToDiscard(c);
+			if(c != null && c.parent != null) {
+				c.parent.removeChild(c);
+			}
+			this.selectedCard = null;
+		}
+		this.cardCount = 0;
 	}
 	,resourceInHand: function(symb) {
 		var x = 0;
@@ -50679,7 +50709,7 @@ zone_InfoBox.prototype = $extend(h2d_Flow.prototype,{
 			Main.ME.delayer.addMs("infobox",function() {
 				t.set_text(t.text + _gthis.s.charAt(i));
 				_gthis.writePortion(i + 1,t);
-			},35);
+			},this.queue.length < 2 ? 35 : 5);
 		} else {
 			this.writing = false;
 			this.popQueue();
@@ -50835,6 +50865,90 @@ zone_Lobby.prototype = $extend(h2d_Flow.prototype,{
 	}
 	,__class__: zone_Lobby
 });
+var zone_OpponentHand = function() {
+	this.hovered = null;
+	h2d_Flow.call(this);
+	Game.ME.scroller.addChildAt(this,Const.DP_TOP);
+	this.set_layout(h2d_FlowLayout.Horizontal);
+	this.set_verticalAlign(h2d_FlowAlign.Top);
+	this.set_horizontalAlign(h2d_FlowAlign.Middle);
+	this.set_horizontalSpacing(10);
+	this.set_paddingBottom(10);
+	this.set_minHeight(this.set_maxHeight(Const.VIEWPORT_HEIGHT * .5));
+	this.set_minWidth(this.set_maxWidth(Const.VIEWPORT_WIDTH * .7));
+	this.posChanged = true;
+	this.x = Const.VIEWPORT_WIDTH * .15;
+	this.posChanged = true;
+	this.y = Const.VIEWPORT_HEIGHT * .01;
+	var c = new h2d_Bitmap(Assets.cardBase.getTile("cardBack"),this);
+	c.set_height(120);
+	c.set_width(84);
+	c.posChanged = true;
+	c.scaleX *= .7;
+	c.posChanged = true;
+	c.scaleY *= .7;
+	var c = new h2d_Bitmap(Assets.cardBase.getTile("cardBack"),this);
+	c.set_height(120);
+	c.set_width(84);
+	c.posChanged = true;
+	c.scaleX *= .7;
+	c.posChanged = true;
+	c.scaleY *= .7;
+	var c = new h2d_Bitmap(Assets.cardBase.getTile("cardBack"),this);
+	c.set_height(120);
+	c.set_width(84);
+	c.posChanged = true;
+	c.scaleX *= .7;
+	c.posChanged = true;
+	c.scaleY *= .7;
+	var c = new h2d_Bitmap(Assets.cardBase.getTile("cardBack"),this);
+	c.set_height(120);
+	c.set_width(84);
+	c.posChanged = true;
+	c.scaleX *= .7;
+	c.posChanged = true;
+	c.scaleY *= .7;
+	var c = new h2d_Bitmap(Assets.cardBase.getTile("cardBack"),this);
+	c.set_height(120);
+	c.set_width(84);
+	c.posChanged = true;
+	c.scaleX *= .7;
+	c.posChanged = true;
+	c.scaleY *= .7;
+};
+$hxClasses["zone.OpponentHand"] = zone_OpponentHand;
+zone_OpponentHand.__name__ = "zone.OpponentHand";
+zone_OpponentHand.ME = function() {
+	if(zone_OpponentHand.instance == null) {
+		zone_OpponentHand.instance = new zone_OpponentHand();
+	}
+	return zone_OpponentHand.instance;
+};
+zone_OpponentHand.__super__ = h2d_Flow;
+zone_OpponentHand.prototype = $extend(h2d_Flow.prototype,{
+	setHover: function(index) {
+		haxe_Log.trace(index,{ fileName : "src/zone/OpponentHand.hx", lineNumber : 38, className : "zone.OpponentHand", methodName : "setHover"});
+		if(index > 0 && index < this.children.length) {
+			if(this.hovered != null) {
+				var _this = this.hovered;
+				_this.posChanged = true;
+				_this.scaleX = .7;
+				_this.posChanged = true;
+				_this.scaleY = .7;
+				this.hovered.alpha = 1;
+			}
+			this.hovered = js_Boot.__cast(this.children[index] , h2d_Bitmap);
+			var _this = this.hovered;
+			_this.posChanged = true;
+			_this.scaleX = 1.5;
+			_this.posChanged = true;
+			_this.scaleY = 1.5;
+			this.hovered.alpha = .8;
+			this.reflow();
+		}
+	}
+	,__class__: zone_OpponentHand
+});
 var zone_Standings = function() {
 	this.texts = [];
 	this.happiness = 0;
@@ -50902,7 +51016,7 @@ zone_StandingsBox.prototype = $extend(h2d_Flow.prototype,{
 	,__class__: zone_StandingsBox
 });
 var zone_Supply = function() {
-	this.focused = { x : Const.VIEWPORT_WIDTH * .01, y : Const.VIEWPORT_HEIGHT * .01};
+	this.focused = { x : Const.VIEWPORT_WIDTH * -.01, y : Const.VIEWPORT_HEIGHT * .01};
 	this.events = [];
 	this.buildings = [];
 	var _gthis = this;
@@ -50910,13 +51024,14 @@ var zone_Supply = function() {
 	zone_Supply.ME = this;
 	Game.ME.scroller.addChildAt(this,Const.DP_UI);
 	this.set_minHeight(this.set_maxHeight(Const.VIEWPORT_HEIGHT * .4));
-	this.set_minWidth(this.set_maxWidth(Const.VIEWPORT_WIDTH * .23));
+	this.set_minWidth(this.set_maxWidth(Const.VIEWPORT_WIDTH * .25));
 	this.setPositionHidden();
 	this.set_layout(h2d_FlowLayout.Horizontal);
 	this.set_verticalAlign(h2d_FlowAlign.Top);
 	this.set_horizontalSpacing(5);
 	this.set_horizontalAlign(h2d_FlowAlign.Left);
 	this.set_padding(10);
+	this.set_paddingLeft(Const.VIEWPORT_WIDTH * .02);
 	this.set_backgroundTile(h2d_Tile.fromColor(2236962));
 	var outline = new h2d_filter_Outline();
 	outline.pass.color = 9849600;
@@ -51082,6 +51197,7 @@ zone_Supply.prototype = $extend(h2d_Flow.prototype,{
 		var wonders = new h2d_Flow(shelves);
 		wonders.addChild(new card_Card("hanging_gardens",card_CardState.SUPPLY));
 		wonders.addChild(new card_Card("palace",card_CardState.SUPPLY));
+		this.createDebugSkipTurn(wonders);
 	}
 	,showPreviewImage: function(c) {
 		this.removeChild(this.previewImage);
@@ -51095,6 +51211,22 @@ zone_Supply.prototype = $extend(h2d_Flow.prototype,{
 	}
 	,hidePreviewImage: function() {
 		this.previewImage.set_visible(false);
+	}
+	,createDebugSkipTurn: function(parent) {
+		var _gthis = this;
+		var button = new h2d_Flow(parent);
+		parent.set_verticalAlign(h2d_FlowAlign.Middle);
+		button.set_padding(5);
+		var t = new h2d_Text(Assets.fontMedium,button);
+		t.set_text("Skip Turn (Debug)");
+		button.set_enableInteractive(true);
+		button.interactive.onClick = function(e) {
+			client_Turn.nextTurn();
+		};
+		button.interactive.onOver = function(e) {
+			_gthis.setPositionFocused();
+		};
+		button.interactive.set_cursor(hxd_Cursor.Button);
 	}
 	,__class__: zone_Supply
 });
