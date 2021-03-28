@@ -7950,6 +7950,10 @@ var field_Field = function() {
 	this.set_multiline(true);
 	this.set_verticalAlign(h2d_FlowAlign.Bottom);
 	this.fillGrid();
+	var outline = new h2d_filter_Outline();
+	outline.pass.color = 8947848;
+	outline.pass.size = 2;
+	this.set_filter(outline);
 };
 $hxClasses["field.Field"] = field_Field;
 field_Field.__name__ = "field.Field";
