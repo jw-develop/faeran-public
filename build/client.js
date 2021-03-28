@@ -3324,7 +3324,7 @@ var client_FaeranClient = function() {
 	var client = new io_colyseus_Client("wss://faeran-server-qmjhvcvdwa-uc.a.run.app");
 	client.joinOrCreate_client_schema_FaeranState("friedman",new haxe_ds_StringMap(),client_schema_FaeranState,function(err,room) {
 		if(err != null) {
-			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 85, className : "client.FaeranClient", methodName : "new"});
+			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 91, className : "client.FaeranClient", methodName : "new"});
 			return;
 		}
 		_gthis.room = room;
@@ -3336,6 +3336,9 @@ client_FaeranClient.__name__ = "client.FaeranClient";
 client_FaeranClient.prototype = {
 	send: function(type,meta) {
 		this.room.send(type,meta);
+	}
+	,sendGlobalChat: function(msg) {
+		this.send("GlobalChat",{ msg : msg, color : player_Identity.ME.color});
 	}
 	,__class__: client_FaeranClient
 };
@@ -3353,11 +3356,10 @@ function client_FaeranClient_addMessageHandlers(room) {
 	});
 	room.onMessage("Chat",function(obj) {
 		if(obj.msg != null) {
-			var p = room.get_state().players.items.get(obj.sentFromId);
-			var color = p != null ? p.color : 13421772;
+			var color = obj.color != null ? obj.color : 13421772;
 			zone_InfoBox.ME.write(obj.msg,color);
 		} else {
-			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 40, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 39, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
 		}
 	});
 	room.get_state().cells.onAdd = function(cell,key) {
@@ -50082,6 +50084,7 @@ var player_Identity = function(p) {
 	player_Identity.ME = this;
 	this.p = p;
 	this.isNorth = p.playerIndex % 2 == 1;
+	this.color = p.color;
 	zone_InfoBox.ME.nameInput.set_text(p.name);
 	zone_InfoBox.ME.nameInput.set_textColor(p.color);
 	zone_InfoBox.ME.playerColor = p.color;
@@ -50485,7 +50488,7 @@ zone_Hand.prototype = $extend(h2d_Flow.prototype,{
 	,playToField: function(c) {
 		if(this.selectedCard != null) {
 			field_Field.ME.sendCellToServer(c.gridPos.x,c.gridPos.y,this.selectedCard.info.alias,player_Identity.ME.isNorth);
-			client_FaeranClient.ME.send("GlobalChat","Played " + this.selectedCard.info.title + " to the field.");
+			client_FaeranClient.ME.sendGlobalChat("Played " + this.selectedCard.info.title + " to the field.");
 			zone_Discard.ME.discard(this.selectedCard);
 			var _this = this.selectedCard;
 			if(_this != null && _this.parent != null) {
@@ -50574,7 +50577,7 @@ zone_InfoBox.prototype = $extend(h2d_Flow.prototype,{
 		this.popQueue();
 	}
 	,sendChat: function() {
-		client_FaeranClient.ME.send("GlobalChat",this.chatInput.text);
+		client_FaeranClient.ME.sendGlobalChat(this.chatInput.text);
 	}
 	,popQueue: function() {
 		if(!this.writing && this.queue.length > 0) {
