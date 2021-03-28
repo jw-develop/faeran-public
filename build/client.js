@@ -897,6 +897,7 @@ var Game = function() {
 	new zone_Hand();
 	new field_Field();
 	new zone_Supply();
+	new client_Turn();
 	new zone_Lobby();
 	new client_FaeranClient();
 };
@@ -3324,11 +3325,12 @@ var client_FaeranClient = function() {
 	var client = new io_colyseus_Client("wss://faeran-server-qmjhvcvdwa-uc.a.run.app");
 	client.joinOrCreate_client_schema_FaeranState("friedman",new haxe_ds_StringMap(),client_schema_FaeranState,function(err,room) {
 		if(err != null) {
-			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 91, className : "client.FaeranClient", methodName : "new"});
+			haxe_Log.trace("JOIN ERROR: " + Std.string(err),{ fileName : "src/client/FaeranClient.hx", lineNumber : 101, className : "client.FaeranClient", methodName : "new"});
 			return;
 		}
 		_gthis.room = room;
 		client_FaeranClient_addMessageHandlers(room);
+		client_FaeranClient_addStateHandlers(room.get_state());
 	});
 };
 $hxClasses["client.FaeranClient"] = client_FaeranClient;
@@ -3345,6 +3347,7 @@ client_FaeranClient.prototype = {
 function client_FaeranClient_addMessageHandlers(room) {
 	room.onMessage("RoomInit",function(_) {
 		field_Field.ME.initializeForServer(room.get_state());
+		client_Turn.nextTurn();
 	});
 	room.onMessage("IdentityInit",function(p) {
 		new player_Identity(p);
@@ -3359,24 +3362,29 @@ function client_FaeranClient_addMessageHandlers(room) {
 			var color = obj.color != null ? obj.color : 13421772;
 			zone_InfoBox.ME.write(obj.msg,color);
 		} else {
-			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 39, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
+			haxe_Log.trace("Null chat object: " + Std.string(obj),{ fileName : "src/client/FaeranClient.hx", lineNumber : 42, className : "client._FaeranClient.FaeranClient_Fields_", methodName : "addMessageHandlers"});
 		}
 	});
-	room.get_state().cells.onAdd = function(cell,key) {
+	room.onMessage("TurnSet",function(turn) {
+		client_Turn.setTurn(turn);
+	});
+}
+function client_FaeranClient_addStateHandlers(state) {
+	state.cells.onAdd = function(cell,key) {
 		field_Field.ME.drawCellFromServer(cell);
 	};
-	room.get_state().players.onAdd = function(player,key) {
+	state.players.onAdd = function(player,key) {
 		var list = [];
-		var p = room.get_state().players.iterator();
+		var p = state.players.iterator();
 		while(p.hasNext()) {
 			var p1 = p.next();
 			list.push(p1);
 		}
 		zone_Lobby.ME.setPlayers(list);
 	};
-	room.get_state().players.onRemove = function(player,key) {
+	state.players.onRemove = function(player,key) {
 		var list = [];
-		var p = room.get_state().players.iterator();
+		var p = state.players.iterator();
 		while(p.hasNext()) {
 			var p1 = p.next();
 			list.push(p1);
@@ -3384,6 +3392,30 @@ function client_FaeranClient_addMessageHandlers(room) {
 		zone_Lobby.ME.setPlayers(list);
 	};
 }
+var client_Turn = function() {
+	client_Turn.ME = this;
+};
+$hxClasses["client.Turn"] = client_Turn;
+client_Turn.__name__ = "client.Turn";
+client_Turn.nextTurn = function() {
+	client_FaeranClient.ME.send("TurnNext",{ });
+};
+client_Turn.setTurn = function(t) {
+	if(t != client_Turn.ME.currentTurn) {
+		client_Turn.ME.currentTurn = t;
+		if(client_Turn.myTurn()) {
+			zone_InfoBox.ME.write("It is your turn.",Const.SERVER_COLOR);
+		} else {
+			zone_InfoBox.ME.write("It is the opponent's turn.",Const.SERVER_COLOR);
+		}
+	}
+};
+client_Turn.myTurn = function() {
+	return client_Turn.ME.currentTurn == player_Identity.ME.isNorth;
+};
+client_Turn.prototype = {
+	__class__: client_Turn
+};
 var io_colyseus_serializer_schema_types_IRef = function() { };
 $hxClasses["io.colyseus.serializer.schema.types.IRef"] = io_colyseus_serializer_schema_types_IRef;
 io_colyseus_serializer_schema_types_IRef.__name__ = "io.colyseus.serializer.schema.types.IRef";
@@ -3813,7 +3845,7 @@ io_colyseus_serializer_schema_Schema.prototype = {
 	,__class__: io_colyseus_serializer_schema_Schema
 };
 var client_schema_FaeranState = function() {
-	this.cell = new client_schema_PlayerCell();
+	this.turn = false;
 	this.initialized = false;
 	this.cells = new io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$PlayerCell();
 	this.players = new io_colyseus_serializer_schema_types_MapSchema_$client_$schema_$Player();
@@ -3826,9 +3858,8 @@ var client_schema_FaeranState = function() {
 	this._childTypes.h[1] = client_schema_PlayerCell;
 	this._indexes.h[2] = "initialized";
 	this._types.h[2] = "boolean";
-	this._indexes.h[3] = "cell";
-	this._types.h[3] = "ref";
-	this._childTypes.h[3] = client_schema_PlayerCell;
+	this._indexes.h[3] = "turn";
+	this._types.h[3] = "boolean";
 };
 $hxClasses["client.schema.FaeranState"] = client_schema_FaeranState;
 client_schema_FaeranState.__name__ = "client.schema.FaeranState";
@@ -50499,10 +50530,11 @@ zone_Hand.prototype = $extend(h2d_Flow.prototype,{
 			if(this.cardCount <= 0) {
 				this.drawUpToFive();
 			}
+			client_Turn.nextTurn();
 		}
 	}
 	,drawUpToFive: function() {
-		zone_InfoBox.ME.write("Drew " + (5 - this.cardCount) + " cards from the deck.");
+		zone_InfoBox.ME.write("Drew " + (5 - this.cardCount) + " cards from the deck.",Const.SERVER_COLOR);
 		this.drawRecurse();
 	}
 	,drawRecurse: function() {
@@ -50958,6 +50990,7 @@ Const.DP_MAIN = Const._inc++;
 Const.DP_FX_FRONT = Const._inc++;
 Const.DP_TOP = Const._inc++;
 Const.DP_UI = Const._inc++;
+Const.SERVER_COLOR = 13421772;
 Entity.ALL = [];
 Entity.GC = [];
 dn_Process.CUSTOM_STAGE_WIDTH = -1;
