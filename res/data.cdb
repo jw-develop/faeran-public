@@ -33,6 +33,10 @@
 					"typeStr": "1",
 					"name": "description",
 					"display": null
+				},
+				{
+					"typeStr": "1",
+					"name": "effect"
 				}
 			],
 			"lines": [
@@ -43,7 +47,8 @@
 					"money_cost": 0,
 					"dims": "-",
 					"title": "Wall",
-					"description": "Blocks movement through this square; Blocks line of sight; Buildings that provide S in this square provide +1 S"
+					"description": "Blocks movement through this square; Blocks line of sight; Buildings that provide S in this square provide +1 S",
+					"effect": ""
 				},
 				{
 					"alias": "guard_tower",
@@ -52,7 +57,8 @@
 					"money_cost": 0,
 					"dims": "-",
 					"title": "Guard Tower",
-					"description": "'+3 S; Protect self and all adjacent cards"
+					"description": "'+3 S; Protect self and all adjacent cards",
+					"effect": ""
 				},
 				{
 					"alias": "village_labor",
@@ -61,7 +67,8 @@
 					"money_cost": 2,
 					"dims": "1x1",
 					"title": "Village Labor",
-					"description": "'+1 L"
+					"description": "'+1 L",
+					"effect": "1,L"
 				},
 				{
 					"alias": "farmer",
@@ -70,7 +77,8 @@
 					"money_cost": 1,
 					"dims": "1x1",
 					"title": "Farmer",
-					"description": "'+1 M"
+					"description": "'+1 M",
+					"effect": "1,M"
 				},
 				{
 					"alias": "send_out_the_messengers",
@@ -79,7 +87,8 @@
 					"money_cost": 3,
 					"dims": "-",
 					"title": "Send out the Messengers",
-					"description": "'+ 2 Orders"
+					"description": "'+ 2 Orders",
+					"effect": ""
 				},
 				{
 					"alias": "military_engineers",
@@ -88,7 +97,8 @@
 					"money_cost": 5,
 					"dims": "-",
 					"title": "Military Engineers",
-					"description": "'+2 L; +1 order"
+					"description": "'+2 L; +1 order",
+					"effect": ""
 				},
 				{
 					"alias": "stir_peasants",
@@ -97,7 +107,8 @@
 					"money_cost": 5,
 					"dims": "",
 					"title": "Stir up the Peasants",
-					"description": "If your H is 5 greater than your opponent's H, disable up to 3 opposing Village Labor or Work Crew cards for 1. Diable these cards for 1 additional turn for every 5 above the first"
+					"description": "If your H is 5 greater than your opponent's H, disable up to 3 opposing Village Labor or Work Crew cards for 1. Diable these cards for 1 additional turn for every 5 above the first",
+					"effect": ""
 				},
 				{
 					"alias": "gate",
@@ -106,7 +117,8 @@
 					"money_cost": 0,
 					"dims": "",
 					"title": "Gate",
-					"description": ""
+					"description": "",
+					"effect": ""
 				},
 				{
 					"alias": "work_crew",
@@ -115,7 +127,8 @@
 					"money_cost": 4,
 					"dims": "1x1",
 					"title": "Work Crew",
-					"description": "+2 L"
+					"description": "+2 L",
+					"effect": "2,L"
 				},
 				{
 					"alias": "building_team",
@@ -124,7 +137,8 @@
 					"money_cost": 6,
 					"dims": "1x1",
 					"title": "Building Team",
-					"description": "+3 L"
+					"description": "+3 L",
+					"effect": "3,L"
 				},
 				{
 					"alias": "shop_keeper",
@@ -133,7 +147,8 @@
 					"money_cost": 3,
 					"dims": "1x1",
 					"title": "Shopkeeper",
-					"description": "+2 M"
+					"description": "+2 M",
+					"effect": "2,M"
 				},
 				{
 					"alias": "merchant",
@@ -142,7 +157,8 @@
 					"money_cost": 5,
 					"dims": "1x1",
 					"title": "Merchant",
-					"description": "+3 M"
+					"description": "+3 M",
+					"effect": "3,M"
 				},
 				{
 					"alias": "repair",
@@ -151,7 +167,8 @@
 					"money_cost": 0,
 					"dims": "",
 					"title": "Repair",
-					"description": ""
+					"description": "",
+					"effect": ""
 				},
 				{
 					"alias": "run_them_out_of_town",
@@ -160,7 +177,8 @@
 					"money_cost": 4,
 					"dims": "",
 					"title": "Run Them Out of Town",
-					"description": "Should be 3L OR 4M"
+					"description": "Should be 3L OR 4M",
+					"effect": ""
 				},
 				{
 					"alias": "hanging_gardens",
@@ -169,7 +187,8 @@
 					"money_cost": 0,
 					"dims": "",
 					"title": "Hanging Gardens",
-					"description": ""
+					"description": "",
+					"effect": ""
 				},
 				{
 					"alias": "palace",
@@ -178,7 +197,8 @@
 					"money_cost": 0,
 					"dims": "",
 					"title": "Palace",
-					"description": ""
+					"description": "",
+					"effect": ""
 				}
 			],
 			"separators": [],
