@@ -1,0 +1,20 @@
+
+symbols.png
+size: 1280,1280
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+sym_money
+  rotate: false
+  xy: 1, 1
+  size: 128,128
+  orig: 128,128
+  offset: 0, 0
+  index: -1
+sym_labor
+  rotate: false
+  xy: 129, 1
+  size: 128,128
+  orig: 128,128
+  offset: 0, 0
+  index: -1
